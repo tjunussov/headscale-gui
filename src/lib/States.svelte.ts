@@ -7,7 +7,7 @@ import { apiGet } from './common/api';
 import { arraysEqual, clone, toastError, toastWarning } from './common/funcs';
 import { debug } from './common/debug';
 
-export type LayoutStyle = 'list' | 'tile';
+export type LayoutStyle = 'list' | 'tile' | 'table';
 
 export type Valued<T> = {
     value: T
