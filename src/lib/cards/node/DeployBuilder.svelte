@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copyToClipboard, isValidCIDR, isValidTag, toastError, toastSuccess } from '$lib/common/funcs';
+	import { clone, copyToClipboard, isValidCIDR, isValidTag, toastError, toastSuccess } from '$lib/common/funcs';
 	import DeployCheck from './DeployCheck.svelte';
 	// Deploy builder (was the Deploy page): tailscale up options + pre-auth key → one command. Lives in Add machine › Advanced.
 	import type { Deployment } from '$lib/common/types';
@@ -14,7 +14,11 @@
 	import { page } from '$app/state';
 	import { App } from '$lib/States.svelte';
 
-	let deployment: Deployment = $state(App.deploymentDefaults.value);
+	// work on a copy: editing the persisted defaults directly auto-saved every change, including
+	// generated pre-auth keys (credentials) into localStorage. Only "Save Defaults" persists, without the key.
+	let deployment: Deployment = $state({ ...clone(App.deploymentDefaults.value), preAuthKey: "", preAuthKeyUser: "" });
+	// scrub a key stored by earlier versions
+	if (App.deploymentDefaults.value.preAuthKey) App.saveDeploymentDefaults(App.deploymentDefaults.value);
 	const defaultExpires = (h = 1) => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4 + h * 36e5).toISOString().slice(0, 16);
 	let pak = $state({ ephemeral: false, reusable: false, expiration: defaultExpires() });
 	let pakLoading = $state(false);
