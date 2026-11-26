@@ -23,11 +23,12 @@
 <ModeWatcher />
 <Toaster position="bottom-right" />
 <PageDrawer />
-<Sidebar.Provider style="--sidebar-width: calc(var(--spacing) * 64); --header-height: calc(var(--spacing) * 12);">
+<Sidebar.Provider class="h-svh overflow-hidden" style="--sidebar-width: calc(var(--spacing) * 64); --header-height: calc(var(--spacing) * 12);">
 	<AppSidebar />
-	<Sidebar.Inset>
+	<Sidebar.Inset class="overflow-hidden">
 		<SiteHeader />
-		<div class="@container/main flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+		<!-- the page panel scrolls itself (own scrollbar, header stays put) instead of the window -->
+		<div class="@container/main flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 md:gap-6 md:p-6">
 			{@render children()}
 		</div>
 	</Sidebar.Inset>
