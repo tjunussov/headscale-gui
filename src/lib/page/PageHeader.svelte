@@ -27,8 +27,10 @@
 		buttonText?: string;
 		button?: Snippet;
 		children?: Snippet;
+		tools?: Snippet; // extra icon buttons at the right end of the toolbar (e.g. export)
+		searchPlaceholder?: string;
 	};
-	let { title, description, filterString = $bindable(undefined), show = $bindable(false), layout, layouts = ['tile', 'list'], buttonText = 'Create', button, children }: PageHeaderProps = $props();
+	let { title, description, filterString = $bindable(undefined), show = $bindable(false), layout, layouts = ['tile', 'list'], buttonText = 'Create', button, children, tools, searchPlaceholder = 'Search… (regex)' }: PageHeaderProps = $props();
 	const views = [
 		{ value: 'tile' as const, label: 'Tile', icon: LayoutGrid },
 		{ value: 'list' as const, label: 'List', icon: LayoutList },
@@ -58,7 +60,7 @@
 			<div class="flex w-full items-center gap-2 sm:w-auto">
 				{#if filterString !== undefined}
 					<InputGroup.Root class="w-full sm:w-72">
-						<InputGroup.Input placeholder="Search… (regex)" bind:value={filterString} aria-invalid={!regexIsValid} />
+						<InputGroup.Input placeholder={searchPlaceholder} bind:value={filterString} aria-invalid={!regexIsValid} />
 						<InputGroup.Addon><Search /></InputGroup.Addon>
 					</InputGroup.Root>
 				{/if}
@@ -69,6 +71,7 @@
 						{/each}
 					</ToggleGroup.Root>
 				{/if}
+				{@render tools?.()}
 			</div>
 		</div>
 	{/if}

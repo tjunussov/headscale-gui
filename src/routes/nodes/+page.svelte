@@ -12,10 +12,11 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
-	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
-	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-	import Route from '@lucide/svelte/icons/route';
-	import { getSortedFilteredNodes, onlineCounts, openDrawer, dateToStr, lastSeenText, copyToClipboard } from '$lib/common/funcs';
+	import Download from '@lucide/svelte/icons/download';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import MachineMenu from '$lib/parts/MachineMenu.svelte';
+	import MachineIp from '$lib/parts/MachineIp.svelte';
+	import { getSortedFilteredNodes, onlineCounts, openDrawer, lastSeenText } from '$lib/common/funcs';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
@@ -26,13 +27,32 @@
 	let filterString = $state('');
 
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
-	const ipv4 = (ips: string[]) => ips.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ips[0] ?? '—';
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));
 	const open = (n: Node) => openDrawer('nodeDrawer-' + n.id, n);
+	// Tailscale-style pills from advertised routes; dashed = some not approved yet
+	const EXIT = ['0.0.0.0/0', '::/0'];
+	const pills = (n: Node) => {
+		const exit = n.availableRoutes.filter((r) => EXIT.includes(r)), subnet = n.availableRoutes.filter((r) => !EXIT.includes(r));
+		const pill = (label: string, rs: string[]) => ({ label, pending: rs.some((r) => !n.approvedRoutes.includes(r)), title: `${rs.filter((r) => n.approvedRoutes.includes(r)).length}/${rs.length} approved: ${rs.join(', ')}` });
+		return [...(exit.length ? [pill('Exit Node', exit)] : []), ...(subnet.length ? [pill('Subnet', subnet)] : [])];
+	};
+	function exportCsv() {
+		const q = (v: unknown) => `"${String(v ?? '').replaceAll('"', '""')}"`;
+		const rows = nodes.map((n) => [n.id, n.givenName, n.name, n.user.name, n.ipAddresses.join(' '), n.online ? 'online' : 'offline', n.online ? '' : n.lastSeen, tags(n).join(' '), n.availableRoutes.join(' '), n.approvedRoutes.join(' '), n.createdAt]);
+		const csv = [['id', 'name', 'hostname', 'user', 'addresses', 'status', 'last_seen', 'tags', 'advertised_routes', 'approved_routes', 'created'], ...rows].map((r) => r.map(q).join(',')).join('\n');
+		const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })), download: 'machines.csv' });
+		a.click();
+		URL.revokeObjectURL(a.href);
+	}
 	// table headers share the SortFilterBar state: click = sort by column, click again = flip direction
 	const sortBy = (key: string) => (sortMethod === key ? (sortDirection = sortDirection === 'up' ? 'down' : 'up') : ((sortMethod = key), (sortDirection = 'up')));
 </script>
 
+
+{#snippet pillRow(node: Node, small = false)}
+	{#each pills(node) as p (p.label)}<Badge variant="outline" title={p.title} class="{small ? 'h-5 px-1.5 text-[11px]' : ''} {p.pending ? 'border-dashed text-muted-foreground' : ''}">{p.label}</Badge>{/each}
+	{#each tags(node) as t}<Badge variant="secondary" class={small ? 'h-5 px-1.5 text-[11px]' : ''}>{t}</Badge>{/each}
+{/snippet}
 
 {#snippet head(label: string, key: string, cls = '')}
 	<Table.Head class={cls}>
@@ -44,8 +64,9 @@
 {/snippet}
 
 <Page>
-	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString>
+	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
 		{#snippet button()}<NodeCreate bind:show={showCreate} />{/snippet}
+		{#snippet tools()}<Button variant="outline" size="icon" onclick={exportCsv} aria-label="Export CSV" title="Export shown machines as CSV"><Download /></Button>{/snippet}
 		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 	</PageHeader>
 
@@ -72,17 +93,8 @@
 				>
 					<Card.Header class="gap-0.5">
 						<Card.Title class="flex min-w-0 items-center gap-0.5">
-							<!-- ⋮ = node meta (id, user, created) on hover -->
-							<Tooltip.Root>
-								<Tooltip.Trigger class="-ml-1 shrink-0 rounded text-muted-foreground hover:text-foreground" onclick={(e: MouseEvent) => e.stopPropagation()} aria-label="Machine info">
-									<EllipsisVertical class="size-4" />
-								</Tooltip.Trigger>
-								<Tooltip.Content side="top" align="start" class="grid gap-0.5 text-xs">
-									<span>ID: {node.id}</span>
-									<span>User: {node.user.name}</span>
-									<span>Created: {dateToStr(node.createdAt)}</span>
-								</Tooltip.Content>
-							</Tooltip.Root>
+							<!-- ⋮ = actions menu; its header shows id, owner, created -->
+							<MachineMenu {node} class="-ml-1" />
 							<span class="truncate">{node.givenName}</span>
 						</Card.Title>
 						<Card.Action class="flex flex-col items-end gap-0.5">
@@ -92,15 +104,8 @@
 					</Card.Header>
 					<!-- bottom row: big copyable IP left; routes + tags right -->
 					<Card.Content class="mt-auto flex flex-row items-end justify-between gap-3">
-						<button
-							class="rounded font-mono text-base font-semibold tracking-tight text-foreground hover:underline"
-							title="Copy IP address"
-							onclick={(e) => { e.stopPropagation(); copyToClipboard(ipv4(node.ipAddresses), 'Copied ' + ipv4(node.ipAddresses)); }}
-						>{ipv4(node.ipAddresses)}</button>
-						<div class="flex flex-wrap items-center justify-end gap-1 text-xs text-muted-foreground">
-							{#if node.availableRoutes.length}<span class="flex items-center gap-1" title="Approved / advertised routes"><Route class="size-3.5" />{node.approvedRoutes.length}/{node.availableRoutes.length}</span>{/if}
-							{#each tags(node) as t}<Badge variant="secondary" class="h-5 px-1.5 text-[11px]">{t}</Badge>{/each}
-						</div>
+						<MachineIp {node} class="text-base font-semibold tracking-tight text-foreground" />
+						<div class="flex flex-wrap items-center justify-end gap-1">{@render pillRow(node, true)}</div>
 					</Card.Content>
 				</Card.Root>
 			{:else}
@@ -112,33 +117,29 @@
 			<Table.Root>
 				<Table.Header class="bg-muted/50">
 					<Table.Row>
-						{@render head('ID', 'id', 'w-16')}
-						{@render head('Name', 'name')}
-						{@render head('User', 'user', 'hidden sm:table-cell')}
-						<Table.Head>Address</Table.Head>
-						<Table.Head class="hidden lg:table-cell">Tags</Table.Head>
-						<Table.Head class="hidden xl:table-cell">Routes</Table.Head>
+						{@render head('Machine', 'name')}
+						<Table.Head>Addresses</Table.Head>
 						{@render head('Last Seen', 'lastseen', 'hidden md:table-cell')}
-						<Table.Head class="w-24">Status</Table.Head>
+						<Table.Head class="w-10"></Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
+					<!-- Tailscale layout: name / owner / pills · address ▾ · status + last seen · ⋮ -->
 					{#each nodes as node (node.id)}
-						<Table.Row class="cursor-pointer" onclick={() => open(node)}>
-							<Table.Cell class="text-muted-foreground tabular-nums">{node.id}</Table.Cell>
-							<Table.Cell>
-								<div class="font-medium">{node.givenName}</div>
-								{#if node.name !== node.givenName}<div class="text-xs text-muted-foreground">{node.name}</div>{/if}
+						<Table.Row class="cursor-pointer {node.online ? '' : 'text-muted-foreground'}" onclick={() => open(node)}>
+							<Table.Cell class="py-2.5">
+								<div class="font-medium text-foreground">{node.givenName}</div>
+								<div class="text-xs text-muted-foreground">{node.user.name}{node.name !== node.givenName ? ` · ${node.name}` : ''}</div>
+								{#if pills(node).length || tags(node).length}<div class="mt-1 flex flex-wrap gap-1">{@render pillRow(node, true)}</div>{/if}
 							</Table.Cell>
-							<Table.Cell class="hidden sm:table-cell">{node.user.name}</Table.Cell>
-							<Table.Cell class="font-mono text-xs">{ipv4(node.ipAddresses)}</Table.Cell>
-							<Table.Cell class="hidden lg:table-cell"><div class="flex flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary">{t}</Badge>{/each}</div></Table.Cell>
-							<Table.Cell class="hidden tabular-nums text-muted-foreground xl:table-cell">{node.availableRoutes.length ? `${node.approvedRoutes.length}/${node.availableRoutes.length}` : '—'}</Table.Cell>
-							<Table.Cell class="hidden text-muted-foreground md:table-cell">{lastSeenText(node)}</Table.Cell>
-							<Table.Cell><OnlineNodeIndicator {node} label /></Table.Cell>
+							<Table.Cell class="py-2.5 align-top"><MachineIp {node} class="text-sm" /></Table.Cell>
+							<Table.Cell class="hidden py-2.5 align-top md:table-cell">
+								<span class="inline-flex items-center gap-2"><OnlineNodeIndicator {node} />{node.online ? 'Connected' : lastSeenText(node)}</span>
+							</Table.Cell>
+							<Table.Cell class="py-2.5 align-top"><MachineMenu {node} /></Table.Cell>
 						</Table.Row>
 					{:else}
-						<Table.Row><Table.Cell colspan={8} class="h-24 text-center text-muted-foreground">No machines.</Table.Cell></Table.Row>
+						<Table.Row><Table.Cell colspan={4} class="h-24 text-center text-muted-foreground">No machines.</Table.Cell></Table.Row>
 					{/each}
 				</Table.Body>
 			</Table.Root>

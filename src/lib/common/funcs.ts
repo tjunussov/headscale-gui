@@ -337,17 +337,8 @@ export function filterNode(node: Node, filterString: string, onlineStatus: Onlin
 
 	try {
 		const r = RegExp(filterString);
-		const getTag = (tag: string) => {
-			if (tag.startsWith('tag:')) {
-				return tag.substring(0, 4);
-			}
-			return tag;
-		};
-		return (
-			r.test(node.name) ||
-			r.test(node.givenName) ||
-			node.tags.map(getTag).some((tag) => r.test(tag))
-		);
+		// name, hostname, owner, tag (without "tag:"; upstream compared only the prefix), any IP
+		return [node.name, node.givenName, node.user.name, ...node.tags.map((t) => t.replace(/^tag:/, '')), ...node.ipAddresses].some((s) => r.test(s));
 	} catch (err) {
 		return true;
 	}
