@@ -12,6 +12,9 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
+	import Network from '@lucide/svelte/icons/network';
+	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import Route from '@lucide/svelte/icons/route';
 	import { getSortedFilteredNodes, onlineCounts, openDrawer, dateToStr, lastSeenText } from '$lib/common/funcs';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
@@ -25,16 +28,12 @@
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const ipv4 = (ips: string[]) => ips.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ips[0] ?? '—';
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));
-	const routes = (n: Node) => (n.availableRoutes.length ? `${n.approvedRoutes.length}/${n.availableRoutes.length} approved` : '—');
 	// ponytail: dateToStr gives "MM/DD/YYYY, hh:mm"; tiles show the date part only
 	const open = (n: Node) => openDrawer('nodeDrawer-' + n.id, n);
 	// table headers share the SortFilterBar state: click = sort by column, click again = flip direction
 	const sortBy = (key: string) => (sortMethod === key ? (sortDirection = sortDirection === 'up' ? 'down' : 'up') : ((sortMethod = key), (sortDirection = 'up')));
 </script>
 
-{#snippet kv(label: string, value: string, mono = false)}
-	<div class="min-w-0"><div class="text-muted-foreground">{label}</div><div class="truncate font-medium {mono ? 'font-mono' : ''}">{value}</div></div>
-{/snippet}
 
 {#snippet head(label: string, key: string, cls = '')}
 	<Table.Head class={cls}>
@@ -74,15 +73,18 @@
 					<Card.Header class="gap-0.5">
 						<Card.Title class="truncate">{node.givenName}</Card.Title>
 						<Card.Description class="truncate text-xs">#{node.id} · {node.user.name}</Card.Description>
-						<Card.Action><OnlineNodeIndicator {node} label /></Card.Action>
+						<Card.Action class="flex flex-col items-end gap-0.5">
+							<OnlineNodeIndicator {node} label />
+							{#if !node.online}<span class="text-[11px] text-muted-foreground">{lastSeenText(node)}</span>{/if}
+						</Card.Action>
 					</Card.Header>
-					<Card.Content class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-						{@render kv('Address', ipv4(node.ipAddresses), true)}
-						{@render kv('Last Seen', lastSeenText(node))}
-						{@render kv('Created', dateToStr(node.createdAt).split(',')[0])}
-						{@render kv('Routes', routes(node))}
+					<!-- no labels: icon + value (title attr names the field) -->
+					<Card.Content class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
+						<span class="flex items-center gap-1 font-mono text-foreground" title="IPv4 address"><Network class="size-3.5 text-muted-foreground" />{ipv4(node.ipAddresses)}</span>
+						<span class="flex items-center gap-1" title="Created"><CalendarDays class="size-3.5" />{dateToStr(node.createdAt).split(',')[0]}</span>
+						{#if node.availableRoutes.length}<span class="flex items-center gap-1" title="Approved / advertised routes"><Route class="size-3.5" />{node.approvedRoutes.length}/{node.availableRoutes.length}</span>{/if}
 						{#if tags(node).length}
-							<div class="col-span-2 flex flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary" class="h-5 px-1.5 text-[11px]">{t}</Badge>{/each}</div>
+							<div class="flex w-full flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary" class="h-5 px-1.5 text-[11px]">{t}</Badge>{/each}</div>
 						{/if}
 					</Card.Content>
 				</Card.Root>
