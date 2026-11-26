@@ -20,6 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - run: npx svelte-kit sync # generates .svelte-kit/tsconfig.json on a clean checkout
       - run: npx svelte-check --tsconfig ./tsconfig.json
       - run: npm run test:mock
       - run: ENDPOINT=/admin npm run build
