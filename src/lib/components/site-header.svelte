@@ -24,7 +24,7 @@
 		<Separator orientation="vertical" class="mx-2 data-vertical:h-4 data-vertical:self-center" />
 		<Breadcrumb.Root>
 			<Breadcrumb.List>
-				<Breadcrumb.Item class="hidden md:block">{current?.group ?? 'TJNPVScale'}</Breadcrumb.Item>
+				<Breadcrumb.Item class="hidden md:block">{current?.group ?? 'Headscale VPN'}</Breadcrumb.Item>
 				<Breadcrumb.Separator class="hidden md:block" />
 				{#if leaf}
 					<Breadcrumb.Item><Breadcrumb.Link href="{base}{current?.path}/">{current?.name}</Breadcrumb.Link></Breadcrumb.Item>
