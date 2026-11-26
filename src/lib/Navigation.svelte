@@ -26,7 +26,7 @@
 	const DrawerStore = getDrawerStore();
 
 	function classesActive(href: string): string {
-		return href === page.route.id ? 'bg-primary-300 dark:bg-primary-700' : '';
+		return href === page.route.id ? '!bg-zinc-100 dark:!bg-zinc-900 font-medium text-zinc-950 dark:text-zinc-50' : '';
 	}
 
 	let newPath = $state('');
@@ -54,13 +54,13 @@
 	const pages = $derived.by(() => App.hasValidApi ? allPages : allPages.slice(-1));
 </script>
 
-<nav class="list-nav pt-0">
+<nav class="list-nav p-3">
 	<ul>
 		{#each pages as p}
 			<li>
 				<a
 					href="{base}{p.path}"
-					class={'!rounded-none ' + classesActive(p.path)}
+					class={'!rounded-md text-zinc-600 dark:text-zinc-400 hover:!bg-zinc-100 dark:hover:!bg-zinc-900 ' + classesActive(p.path)}
 					onclick={() => {
 						DrawerStore.close();
 						setActivePath(p.path);

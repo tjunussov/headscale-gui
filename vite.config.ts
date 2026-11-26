@@ -12,4 +12,6 @@ export default defineConfig({
 			compiler: 'svelte',
 		}),
 	],
+	// dev only: HEADSCALE=http://host:8080 npm run dev → proxy API, avoids CORS (set API URL to the dev origin)
+	server: { proxy: process.env.HEADSCALE ? { '/api': { target: process.env.HEADSCALE, changeOrigin: true } } : {} },
 });

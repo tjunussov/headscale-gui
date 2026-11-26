@@ -1,4 +1,18 @@
-# headscale-admin
+# TJNPVScale
+
+Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) with a reworked monochrome, shadcn-style UI.
+
+```bash
+npm install && npm run dev          # dev server
+ENDPOINT=/admin npm run build       # static build -> ./build
+git fetch upstream && git merge upstream/main   # pull upstream fixes
+```
+
+Theme lives in `src/theme.ts` (zinc palette) + overrides in `src/app.postcss`.
+
+---
+
+## Upstream: headscale-admin
 
 headscale-admin is meant to be a simple, modern, and useful web interface for [juanfont/headscale](https://github.com/juanfont/headscale) - *"An open source, self-hosted implementation of the Tailscale control server."*
 

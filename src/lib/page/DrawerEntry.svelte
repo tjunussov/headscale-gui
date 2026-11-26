@@ -13,7 +13,7 @@
 </script>
 
 <div class="flex flex-row justify-between">
-	<div class="text-3xl py-4 lg:py-8">
+	<div class="text-xl font-semibold tracking-tight py-4 lg:py-6">
 		{title}
 	</div>
 	<div>

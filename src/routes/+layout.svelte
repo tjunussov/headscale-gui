@@ -45,14 +45,12 @@
 	import { createPopulateErrorHandler } from '$lib/common/errors';
 	import { version } from '$lib/common/debug';
 	import { App } from '$lib/States.svelte';
-	import { setTheme } from '$lib/common/themes';
 
 	let { children } = $props()
 
 	let ToastStore = $state(getToastStore());
 
 	onMount(() => {
-		setTheme(App.theme.value || 'skeleton')
 		App.populateAll(createPopulateErrorHandler(ToastStore), true)
 
 		if (!App.hasValidApi) {
@@ -64,10 +62,10 @@
 <Toast />
 <PageDrawer />
 <Modal />
-<AppShell slotSidebarLeft="w-0 mr-2 lg:w-48" scrollGutter="stable both-edges">
+<AppShell slotSidebarLeft="w-0 lg:w-56 lg:border-r border-zinc-200 dark:border-zinc-800" scrollGutter="stable both-edges">
 	<svelte:fragment slot="header">
 		<!-- App Bar -->
-		<AppBar>
+		<AppBar padding="px-4 py-2" shadow="">
 			<svelte:fragment slot="lead">
 				<div>
 					<button
@@ -85,8 +83,10 @@
 							</svg>
 						</span>
 					</button>
-					<strong class="text-xl uppercase">Headscale-Admin</strong>
-					<span class="text-sm lowercase">{version}</span>
+					<a href="{base}/" class="inline-flex items-center gap-2 font-semibold tracking-tight">
+						<img src="{base}/favicon.svg" alt="" class="w-6 h-6 dark:invert" />TJNPVScale
+						<span class="text-xs font-normal text-zinc-500">v{version}</span>
+					</a>
 				</div>
 			</svelte:fragment>
 
@@ -94,7 +94,7 @@
 				<LightSwitch />
 				<a
 					class="btn btn-sm variant-ghost-surface"
-					href="https://github.com/GoodiesHQ/headscale-admin"
+					href="https://github.com/tjunussov/tjnpvscale"
 					target="_blank"
 					rel="noreferrer"
 				>
@@ -107,7 +107,7 @@
 	<svelte:fragment slot="sidebarLeft">
 		<Navigation />
 	</svelte:fragment>
-	<div class="pl-2 h-full" transition:fade|local>
+	<div class="px-4 lg:px-8 h-full" transition:fade|local>
 		{@render children()}
 	</div>
 </AppShell>

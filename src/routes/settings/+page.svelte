@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { ALL_THEMES, setTheme } from '$lib/common/themes';
 	import {
 		getTime,
 		getTimeDifference,
@@ -29,7 +28,6 @@
 		apiUrl: string;
 		apiKey: string;
 		apiTtl: number;
-		theme: string;
 		debug: boolean;
 	};
 
@@ -38,7 +36,6 @@
 		apiKey: App.apiKey.value,
 		apiTtl: App.apiTtl.value / 1000,
 		debug: App.debug.value,
-		theme: App.theme.value,
 	});
 
 	const ToastStore = getToastStore();
@@ -71,7 +68,6 @@
 			App.apiKey.value = settings.apiKey
 			App.apiTtl.value = settings.apiTtl * 1000
 			App.debug.value = settings.debug
-			App.theme.value = settings.theme
 			App.apiKeyInfo.value = {
 				expires: '',
 				authorized: null,
@@ -92,13 +88,13 @@
 
 <Page classes="items-start">
 	<PageHeader title="Settings" />
-	<form onsubmit={saveSettings} class="max-w-3xl mx-auto p-6 bg-white dark:bg-gray-800 shadow rounded-lg">
+	<form onsubmit={saveSettings} class="max-w-3xl p-6 card">
 		<div class="space-y-6">
 			<div>
-				<label for="api-url" class="block text-lg font-medium text-gray-700 dark:text-gray-200">API URL</label>
+				<label for="api-url" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API URL</label>
 				<input
 					id="api-url"
-					class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+					class="mt-1 block w-full rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
 					type="text"
 					placeholder={page.url.origin}
 					disabled={loading}
@@ -107,11 +103,11 @@
 			</div>
 
 			<div>
-				<label for="api-key" class="block text-lg font-medium text-gray-700 dark:text-gray-200">API Key</label>
+				<label for="api-key" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API Key</label>
 				<div class="mt-1 flex items-center">
 					<input
 						id="api-key"
-						class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+						class="flex-1 rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
 						type={apiKeyShow ? "text" : "password"}
 						placeholder="Enter your API Key"
 						disabled={loading}
@@ -120,7 +116,7 @@
 					<button
 						type="button"
 						disabled={loading}
-						class="ml-2 p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+						class="ml-2 p-2 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 focus:outline-none"
 						onclick={() => { apiKeyShow = !apiKeyShow; }}
 						aria-label={apiKeyShow ? "Hide API Key" : "Show API Key"}
 					>
@@ -133,7 +129,7 @@
 					<button
 						type="button"
 						disabled={loading}
-						class="ml-2 p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+						class="ml-2 p-2 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 focus:outline-none"
 						onclick={async () => {
 							loading = true;
 							try {
@@ -151,11 +147,11 @@
 				</div>
 				{#if apiKeyInfo.authorized !== null}
 					<div class="mt-2 text-sm">
-						<span class={apiKeyInfo.authorized ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+						<span class={apiKeyInfo.authorized ? "text-success-600 dark:text-success-400" : "text-error-600 dark:text-error-400"}>
 							{apiKeyInfo.authorized ? "Authorized" : "Not Authorized"}
 						</span>
 						{#if apiKeyInfo.authorized && apiKeyExpirationMessage}
-							<span class="ml-2 text-gray-500 dark:text-gray-400">
+							<span class="ml-2 text-zinc-500 dark:text-zinc-400">
 								Expires in: {apiKeyExpirationMessage.message}
 							</span>
 						{/if}
@@ -166,10 +162,10 @@
 			</div>
 
 			<div>
-				<label for="api-ttl" class="block text-lg font-medium text-gray-700 dark:text-gray-200">API Refresh Interval (seconds)</label>
+				<label for="api-ttl" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API Refresh Interval (seconds)</label>
 				<input
 					id="api-ttl"
-					class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+					class="mt-1 block w-32 rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
 					type="number"
 					min="1"
 					disabled={loading}
@@ -181,11 +177,11 @@
 				<input
 					id="debugging"
 					type="checkbox"
-					class="h-4 w-4 text-indigo-600 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
+					class="h-4 w-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-950 dark:border-zinc-800"
 					disabled={loading}
 					bind:checked={settings.debug}
 				/>
-				<label for="debugging" class="ml-2 block text-lg text-gray-700 dark:text-gray-200">
+				<label for="debugging" class="ml-2 block text-sm text-zinc-700 dark:text-zinc-200">
 					Console Debugging
 				</label>
 			</div>
@@ -205,28 +201,12 @@
 				</button>
 			</div>
 
-			<div>
-				<label for="theme-selector" class="block text-lg font-medium text-gray-700 dark:text-gray-200">Theme</label>
-				<select
-					id="theme-selector"
-					class="mt-1 block w-full rounded-md border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-					bind:value={App.theme.value}
-					onchange={() => {
-						setTheme(App.theme.value)
-						settings.theme = App.theme.value
-					}}
-				>
-					{#each ALL_THEMES as theme}
-						<option value={theme}>{theme}</option>
-					{/each}
-				</select>
-			</div>
 
 			<div class="flex justify-end">
 				<button
 					type="submit"
 					disabled={loading || !settings.apiKey}
-					class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					class="inline-flex items-center px-4 py-2 btn btn-sm variant-filled-primary disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					<RawMdiContentSaveOutline class="w-5 h-5 mr-2" />
 					Save Settings

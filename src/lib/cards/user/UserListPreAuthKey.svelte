@@ -34,7 +34,7 @@
 <div class="flex flex-row items-start">
 	<div class="flex flex-col px-2 gap-2">
 		<button
-			class="font-mono flex items-center border-2 border-dashed w-auto py-1.5 px-2 mr-3 border-slate-300 dark:border-slate-700"
+			class="font-mono flex items-center border-2 border-dashed w-auto py-1.5 px-2 mr-3 border-zinc-300 dark:border-zinc-700"
 			onclick={() => copyToClipboard(preAuthKey.key, toastStore)}
 		>
 			<span class="mr-2">

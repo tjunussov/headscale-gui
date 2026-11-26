@@ -21,7 +21,7 @@
 </script>
 
 <div class="{classesFinal} mr-4 my-2">
-    <button class="gap-20 w-full px-4 py-2" onclick={onclick}>
+    <button class="w-full p-5" onclick={onclick}>
 		{@render children()}
     </button>
 </div>

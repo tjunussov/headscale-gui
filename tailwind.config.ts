@@ -3,6 +3,7 @@ import type { Config } from 'tailwindcss'
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin'
+import { tjnpv } from './src/theme'
 
 export default {
 	darkMode: 'class',
@@ -13,51 +14,6 @@ export default {
 	plugins: [
 		forms,
 		typography,
-		skeleton({
-			themes: {
-				preset: [
-					{
-						name: 'skeleton',
-						enhancements: true,
-					},
-					{
-						name: 'wintry',
-						enhancements: true,
-					},
-					{
-						name: 'modern',
-						enhancements: true,
-					},
-					{
-						name: 'hamlindigo',
-						enhancements: true,
-					},
-					{
-						name: 'rocket',
-						enhancements: true,
-					},
-					{
-						name: 'sahara',
-						enhancements: true,
-					},
-					{
-						name: 'gold-nouveau',
-						enhancements: true,
-					},
-					{
-						name: 'vintage',
-						enhancements: true,
-					},
-					{
-						name: 'seafoam',
-						enhancements: true,
-					},
-					{
-						name: 'crimson',
-						enhancements: true,
-					},
-				],
-			},
-		}),
+		skeleton({ themes: { custom: [tjnpv] } }),
 	],
 } satisfies Config;

@@ -41,9 +41,9 @@
 	});
 </script>
 
-<div class="py-5">
+<div class="py-6">
 	<div class="flex flex-row justify-between">
-		<div class="text-3xl md:text-4xl lg:text-5xl font-mono">{title}</div>
+		<h1 class="text-2xl font-semibold tracking-tight">{title}</h1>
 		{#if layout && layoutCurrent}
 			<div class="flex pr-5">
 				<RawMdiViewGridOutline />

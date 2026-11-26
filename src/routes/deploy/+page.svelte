@@ -67,7 +67,7 @@
 	<PageHeader title="Deploy" buttonText={''} show={true}>
 		{#snippet button()}
 			<button
-				class="bg-gray-400/30 dark:bg-gray-800/70 border border-dashed border-slate-200 border-1 pr-0 pl-4 rounded-lg justify-start text-left w-[90%]"
+				class="bg-zinc-100 dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-700 pr-0 pl-4 rounded-lg justify-start text-left w-[90%]"
 				onclick={() =>
 					copyToClipboard(craftCommand(deployment), ToastStore, 'Copied Command to Clipboard!')}
 				><code class="text-black dark:text-white text-sm block py-4 w-full"

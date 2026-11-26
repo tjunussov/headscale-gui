@@ -109,12 +109,6 @@ export class HeadscaleAdmin {
     // debugging status
     debug = new StateLocal<boolean>('debug', false);
 
-    // theme information
-    theme = new StateLocal<string>('theme', 'skeleton', (themeName) => {
-        if(themeName !== undefined) {
-            document.body.setAttribute('data-theme', themeName);
-        }
-    })
 
     // api info
     apiValid = $state<boolean>(false);
