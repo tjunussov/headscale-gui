@@ -5,8 +5,9 @@
 </script>
 
 {#snippet dot()}<span class="inline-block size-2 shrink-0 rounded-full {online ? 'bg-emerald-500' : 'border border-muted-foreground/60'}"></span>{/snippet}
-{#if label}
-	<Badge variant="outline" class="gap-1.5 px-1.5 {online ? 'border-emerald-500/40 text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'}">{@render dot()}{online ? 'Online' : 'Offline'}</Badge>
+{#if label && !online}
+	<Badge variant="outline" class="gap-1.5 px-1.5 text-muted-foreground">{@render dot()}Offline</Badge>
 {:else}
-	{@render dot()}
+	<!-- online: the green dot alone says it -->
+	<span class="inline-flex items-center" title={online ? 'Online' : 'Offline'}>{@render dot()}</span>
 {/if}
