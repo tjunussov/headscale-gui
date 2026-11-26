@@ -7,7 +7,7 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
 ## Product rule (current phase)
 
 **Same UX as upstream, shadcn components + monochrome.** Keep upstream's structure, menu (Home, Users, Nodes, Deploy, Routes, ACLs, Settings — this order), page titles, labels (incl. trailing colons like `Name:`), flows (accordion list ⇄ tile view, inline create forms, trash → ✓/✗ confirm, per-tab ACL save) exactly. Only swap Skeleton widgets for shadcn-svelte equivalents and remove color.
-- Monochrome: neutral palette only. The single exception is `destructive` (errors, delete, expired). Status = filled `bg-foreground` dot (online) vs hollow ring (offline).
+- Monochrome: neutral palette only. Exceptions: `destructive` (errors, delete, expired) and **online status = emerald green** (user request, polish phase) — filled green dot / green outline badge via `StatusDot`; offline = hollow grey ring. Offline node tiles render at `opacity-50`.
 - Don't add features/pages/labels that upstream doesn't have without asking.
 - **Polish phase (branch `polish`)**: user-approved restyles only, keeping upstream structure. Done:
   - Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).

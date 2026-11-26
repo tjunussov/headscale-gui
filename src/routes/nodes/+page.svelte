@@ -26,13 +26,14 @@
 	const ipv4 = (ips: string[]) => ips.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ips[0] ?? '—';
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));
 	const routes = (n: Node) => (n.availableRoutes.length ? `${n.approvedRoutes.length}/${n.availableRoutes.length} approved` : '—');
+	// ponytail: dateToStr gives "MM/DD/YYYY, hh:mm"; tiles show the date part only
 	const open = (n: Node) => openDrawer('nodeDrawer-' + n.id, n);
 	// table headers share the SortFilterBar state: click = sort by column, click again = flip direction
 	const sortBy = (key: string) => (sortMethod === key ? (sortDirection = sortDirection === 'up' ? 'down' : 'up') : ((sortMethod = key), (sortDirection = 'up')));
 </script>
 
-{#snippet kv(label: string, value: string)}
-	<div class="flex justify-between gap-4"><span class="text-muted-foreground">{label}</span><span class="truncate text-right font-medium">{value}</span></div>
+{#snippet kv(label: string, value: string, mono = false)}
+	<div class="min-w-0"><div class="text-muted-foreground">{label}</div><div class="truncate font-medium {mono ? 'font-mono' : ''}">{value}</div></div>
 {/snippet}
 
 {#snippet head(label: string, key: string, cls = '')}
@@ -60,23 +61,30 @@
 			{/each}
 		</CardListPage>
 	{:else if App.layoutNode.value === 'tile'}
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
 			{#each nodes as node (node.id)}
-				<Card.Root class="cursor-pointer gap-4 transition-colors hover:border-foreground/25" role="button" tabindex={0} onclick={() => open(node)} onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && open(node)}>
-					<Card.Header>
+				<!-- compact tile; offline nodes dimmed (full opacity on hover/focus) -->
+				<Card.Root
+					class="cursor-pointer gap-3 [--card-spacing:--spacing(3.5)] transition hover:border-foreground/25 {node.online ? '' : 'opacity-50 hover:opacity-100 focus-visible:opacity-100'}"
+					role="button"
+					tabindex={0}
+					onclick={() => open(node)}
+					onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && open(node)}
+				>
+					<Card.Header class="gap-0.5">
 						<Card.Title class="truncate">{node.givenName}</Card.Title>
-						<Card.Description>#{node.id} · {node.user.name}</Card.Description>
+						<Card.Description class="truncate text-xs">#{node.id} · {node.user.name}</Card.Description>
 						<Card.Action><OnlineNodeIndicator {node} label /></Card.Action>
 					</Card.Header>
-					<Card.Content class="grid gap-1.5 text-sm">
-						{@render kv('Address', ipv4(node.ipAddresses))}
+					<Card.Content class="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+						{@render kv('Address', ipv4(node.ipAddresses), true)}
 						{@render kv('Last Seen', lastSeenText(node))}
-						{@render kv('Created', dateToStr(node.createdAt))}
+						{@render kv('Created', dateToStr(node.createdAt).split(',')[0])}
 						{@render kv('Routes', routes(node))}
+						{#if tags(node).length}
+							<div class="col-span-2 flex flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary" class="h-5 px-1.5 text-[11px]">{t}</Badge>{/each}</div>
+						{/if}
 					</Card.Content>
-					{#if tags(node).length}
-						<Card.Footer class="flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary">{t}</Badge>{/each}</Card.Footer>
-					{/if}
 				</Card.Root>
 			{:else}
 				<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No nodes.</p>
