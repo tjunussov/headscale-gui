@@ -8,7 +8,8 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
 
 **Same UX as upstream, shadcn components + monochrome.** Keep upstream's structure, menu (Home, Users, Nodes, Deploy, Routes, ACLs, Settings — this order), page titles, labels (incl. trailing colons like `Name:`), flows (accordion list ⇄ tile view, inline create forms, trash → ✓/✗ confirm, per-tab ACL save) exactly. Only swap Skeleton widgets for shadcn-svelte equivalents and remove color.
 - Monochrome: neutral palette only. The single exception is `destructive` (errors, delete, expired). Status = filled `bg-foreground` dot (online) vs hollow ring (offline).
-- Don't add features/pages/labels that upstream doesn't have without asking. Taste polish comes in a later, separate phase.
+- Don't add features/pages/labels that upstream doesn't have without asking.
+- **Polish phase (branch `polish`)**: user-approved restyles only, keeping upstream structure. Done: Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
 - Run the original side by side to compare: `git worktree add <dir> upstream/main`, `npm ci`, add a vite `/api` proxy to the mock, `npx vite dev --port 5174`.
 
 ## Stack
@@ -60,7 +61,7 @@ Quality gate before commit: `svelte-check` 0 errors, `npm run build` ok, `npm ru
 
 - **Issues:** beads (`bd`). Epics for phases, tasks as children (`bd create ... --parent <epic>`). Claim → work → close. No markdown TODOs.
 - **Branches:** `main` = released. Every major change goes on its own branch, developed in a **git worktree** under `.claude/worktrees/<branch>` (ignored by git). Open a PR into the parent branch; never commit directly to `main`.
-- Current lineage: `main` ← `shadcn` (PR #1, Skeleton → shadcn-svelte migration + mock) ← `ux-parity` (restore upstream UX, monochrome) ← `upstream-028` (port upstream v0.28.0).
+- Current lineage: `main` ← `shadcn` (PR #1, Skeleton → shadcn-svelte migration + mock) ← `ux-parity` (restore upstream UX, monochrome) ← `upstream-028` (port upstream v0.28.0) ← `polish` (taste restyles).
 - Commits: imperative summary + body, end with the Co-Authored-By trailer. Push before ending a session (see below).
 - **Upstream baseline = release tags, not `upstream/main`** (main lags; v0.27/v0.28 exist only as tags). Current baseline: **v0.28.0** (Headscale 0.28 API: node `tags`, `/api/v1/health`, list-all + DELETE preauth keys, keys created on Deploy, Auto Approvers tab).
 - Pull upstream: `git fetch upstream --tags`, then `git diff <old-tag> <new-tag> -- <logic files> | git apply --3way` for `src/lib/common/**` + `States.svelte.ts`; port UI deltas by hand onto shadcn parts. Skip `src/lib/common/client/` (generated, unused). Mirror API changes in `mock-headscale.js` + its selftest.
