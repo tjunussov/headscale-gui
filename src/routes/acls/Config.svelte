@@ -5,6 +5,8 @@
 	import JWCC from 'json5';
 	import { mode } from 'mode-watcher';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { copyToClipboard } from '$lib/common/funcs';
+	import Copy from '@lucide/svelte/icons/copy';
 
 	let { acl = $bindable(), loading = $bindable(false) }: { acl: ACLBuilder; loading?: boolean } = $props();
 	let editing = $state(false);
@@ -18,6 +20,7 @@
 			<Button size="sm" variant="ghost" onclick={() => (editing = false)}>Cancel</Button>
 		{:else}
 			<Button size="sm" variant="outline" disabled={loading} onclick={() => { draft = { text: acl.JSON(2) }; editing = true; }}>Edit JSON</Button>
+			<Button size="sm" variant="outline" onclick={() => copyToClipboard(acl.JSON(2), 'Copied policy JSON')}><Copy />Copy</Button>
 			<Button size="sm" variant="ghost" class="text-destructive" disabled={loading} onclick={() => (acl = ACLBuilder.defaultACL())}>Reset to default</Button>
 		{/if}
 	</div>

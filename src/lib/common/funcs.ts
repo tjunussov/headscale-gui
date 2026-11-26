@@ -48,8 +48,8 @@ export function arraysEqual<T>(a: T[], b: T[]): boolean {
 
 const DurationInfiniteString = '0001-01-01T00:00:00Z';
 const DurationInfinite = new Date(DurationInfiniteString);
-const ExpirationColorFuture = 'text-success-800 dark:text-success-400';
-const ExpirationColorPast = 'text-error-600 dark:text-error-400';
+const ExpirationColorFuture = 'text-emerald-600 dark:text-emerald-400';
+const ExpirationColorPast = 'text-destructive';
 
 export function isExpired(expiry: string): boolean {
 	const date = new Date(expiry ?? DurationInfiniteString);

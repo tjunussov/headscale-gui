@@ -22,7 +22,7 @@
 		offline: App.nodes.value.filter((n) => !n.online).length,
 	});
 	const ipv4 = (ips: string[]) => ips.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ips[0];
-	const tags = (n: (typeof rows)[number]) => [...n.forcedTags, ...n.validTags].map((t) => t.replace('tag:', ''));
+	const tags = (n: (typeof rows)[number]) => [...new Set([...n.forcedTags, ...n.validTags])].map((t) => t.replace('tag:', ''));
 </script>
 
 <PageHeader title="Nodes" description="Devices registered to the tailnet.">
@@ -40,6 +40,7 @@
 				<SortHead name="User" bind:sort bind:dir class="hidden sm:table-cell" />
 				<Table.Head>Address</Table.Head>
 				<Table.Head class="hidden lg:table-cell">Tags</Table.Head>
+				<Table.Head class="hidden xl:table-cell">Routes</Table.Head>
 				<SortHead name="Last seen" key="lastseen" bind:sort bind:dir class="hidden md:table-cell" />
 				<Table.Head class="w-24">Status</Table.Head>
 			</Table.Row>
@@ -57,11 +58,14 @@
 					<Table.Cell class="hidden lg:table-cell">
 						<div class="flex flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary">{t}</Badge>{/each}</div>
 					</Table.Cell>
+					<Table.Cell class="hidden tabular-nums text-muted-foreground xl:table-cell">
+						{#if node.availableRoutes.length}{node.approvedRoutes.length}/{node.availableRoutes.length}{:else}—{/if}
+					</Table.Cell>
 					<Table.Cell class="hidden text-muted-foreground md:table-cell">{lastSeenText(node)}</Table.Cell>
 					<Table.Cell><OnlineNodeIndicator {node} label /></Table.Cell>
 				</Table.Row>
 			{:else}
-				<Table.Row><Table.Cell colspan={7} class="h-24 text-center text-muted-foreground">No nodes.</Table.Cell></Table.Row>
+				<Table.Row><Table.Cell colspan={8} class="h-24 text-center text-muted-foreground">No nodes.</Table.Cell></Table.Row>
 			{/each}
 		</Table.Body>
 	</Table.Root>
