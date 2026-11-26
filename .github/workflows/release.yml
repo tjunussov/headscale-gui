@@ -26,9 +26,20 @@ jobs:
       - run: ENDPOINT=/admin npm run build
       # static release asset: files live under admin/ so they unzip straight into a web root
       - name: Package static build
-        run: mkdir -p out/admin && cp -r build/. out/admin/ && (cd out && zip -qr ../headscale-gui-admin.zip admin)
+        run: mkdir -p out/admin && cp -r build/. out/admin/ && (cd out && zip -qr ../headscale-gui-admin.zip admin) && cp .github/static-branch/README.md out/
       - uses: actions/upload-artifact@v4
         with: { name: headscale-gui-admin, path: headscale-gui-admin.zip }
+      # 'static' branch = latest main build (admin/ + README), so anyone can git clone/pull it into a web root.
+      # History is kept (no force-push), so `git pull` keeps working for people tracking it.
+      - name: Publish static branch
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: static
+          publish_dir: ./out
+          enable_jekyll: true # don't add .nojekyll; this branch is not a Pages site
+          commit_message: 'static build of'
       - name: GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2

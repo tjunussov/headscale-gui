@@ -43,11 +43,19 @@ Tags: `latest` (main) and `X.Y.Z` / `X.Y` for releases. The image is built for `
 
 ### Option B — static files (no extra container)
 
-Download `headscale-gui-admin.zip` from the [latest release](https://github.com/tjunussov/headscale-gui/releases/latest) and unzip it into a folder your web server can read. It contains an `admin/` directory.
+Ready-built files, no Node needed. Either track the auto-built [`static` branch](https://github.com/tjunussov/headscale-gui/tree/static) (always the latest `main`):
+
+```bash
+git clone -b static --depth 1 https://github.com/tjunussov/headscale-gui /srv/headscale-gui   # update: git -C /srv/headscale-gui pull
+```
+
+or download `headscale-gui-admin.zip` from the [latest release](https://github.com/tjunussov/headscale-gui/releases/latest) and unzip it:
 
 ```bash
 sudo mkdir -p /srv/headscale-gui && sudo unzip headscale-gui-admin.zip -d /srv/headscale-gui
 ```
+
+Both give you `/srv/headscale-gui/admin/`.
 
 Unknown paths under `/admin` (e.g. machine pages) must fall back to `admin/200.html`:
 
