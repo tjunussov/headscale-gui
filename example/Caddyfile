@@ -20,10 +20,10 @@
 
 headscale.example.com {
     ### Use this line if you need CORS for another domain, for example:
-    # import cors https://headscale-admin.example.com
+    # import cors https://headscale-gui.example.com
 
-    # /admin endpoint maps to headscale-admin
-    reverse_proxy /admin* headscale-admin:80 {
+    # /admin is the headscale-gui web UI (same origin as the API, so no CORS needed)
+    reverse_proxy /admin* headscale-gui:80 {
         header_up Host {http.request.host}
     }
 
