@@ -12,7 +12,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
-	import { getSortedFilteredNodes, openDrawer, dateToStr, lastSeenText } from '$lib/common/funcs';
+	import { getSortedFilteredNodes, onlineCounts, openDrawer, dateToStr, lastSeenText } from '$lib/common/funcs';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
@@ -49,7 +49,7 @@
 		{#snippet button()}<NodeCreate bind:show={showCreate} />{/snippet}
 	</PageHeader>
 
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} />
+	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 
 	{#if App.layoutNode.value === 'list'}
 		<CardListPage>

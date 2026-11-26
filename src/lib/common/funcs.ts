@@ -388,3 +388,9 @@ export function getSortedFilteredNodes(
 	return nodesSortedFiltered
 }
 export const lastSeenText = (n: Node) => (n.online ? 'Online now' : n.lastSeen && new Date(n.lastSeen).getFullYear() > 1970 ? getTimeDifferenceMessage(getTime(n.lastSeen)) : 'Never');
+
+// counts for the All/Online/Offline filter tabs
+export const onlineCounts = <T>(items: T[], isOnline: (i: T) => boolean): Record<OnlineStatus, number> => {
+	const online = items.filter(isOnline).length;
+	return { all: items.length, online, offline: items.length - online };
+};

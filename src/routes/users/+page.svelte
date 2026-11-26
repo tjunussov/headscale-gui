@@ -10,7 +10,7 @@
 	import UserCreate from '$lib/cards/user/UserCreate.svelte';
 	import UserInfo from '$lib/cards/user/UserInfo.svelte';
 	import OnlineUserIndicator from '$lib/parts/OnlineUserIndicator.svelte';
-	import { getSortedFilteredUsers, openDrawer, dateToStr } from '$lib/common/funcs';
+	import { getSortedFilteredUsers, onlineCounts, openDrawer, dateToStr } from '$lib/common/funcs';
 	import { getUserDisplay, type Direction, type OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
@@ -29,7 +29,7 @@
 		{#snippet button()}<UserCreate bind:show={showCreate} />{/snippet}
 	</PageHeader>
 
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} />
+	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.users.value, (u) => App.nodes.value.some((n) => n.online && n.user.id === u.id))} />
 
 	{#if App.layoutUser.value === 'list'}
 		<CardListPage>
