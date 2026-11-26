@@ -11,11 +11,14 @@
 	import { getSortedFilteredNodes, onlineCounts } from '$lib/common/funcs';
 	import type { Direction, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
+	const saved = uiLoad('routes', { sortMethod: 'id', sortDirection: 'up' as Direction, filterOnlineStatus: 'all' as OnlineStatus, filterString: '' });
+	let sortMethod = $state(saved.sortMethod);
+	let sortDirection = $state<Direction>(saved.sortDirection);
+	let filterOnlineStatus = $state<OnlineStatus>(saved.filterOnlineStatus);
+	let filterString = $state(saved.filterString);
+	$effect(() => uiSave('routes', { sortMethod, sortDirection, filterOnlineStatus, filterString }));
 
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus, true));
 </script>

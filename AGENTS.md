@@ -17,6 +17,7 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
   - "Nodes" is labelled **Machines** in the UI (Tailscale wording); URL `/nodes`, API and code keep "node".
   - Machines page borrows from Tailscale: table (Machine/owner/pills · Addresses ▾ · Last Seen · ⋮), `MachineMenu`, `MachineIp`, Exit Node/Subnet pills (`machinePills`), CSV export, search over name/owner/tag/IP.
   - **Add machine** dialog (`AddDeviceDialog`): OS picker + tabs Download / Connect / Register / Advanced. Advanced = `DeployBuilder` (the former Deploy page, with `DeployCheck`). `/nodes/?add[=tab]` opens it; Deploy is no longer a menu item.
+  - **Remembered UI state** via `$lib/common/ui` (`uiLoad`/`uiSave`, localStorage `ui:<key>`): Machines/Users/Routes sort+direction+online filter+search, ACL tab, Add machine OS+tab, last page (app root resumes it on first load). New pages with filters/tabs should do the same. Layouts (tile/list/table) and settings use `StateLocal`.
   - **Machine page** `src/routes/nodes/[id]/` (`/nodes/<ipv4 or id>/`, link via `machineHref`): not prerendered; served by the SPA fallback `200.html` (adapter-static `fallback`). Any web server must fall back to `<ENDPOINT>/200.html` for unknown paths (Caddyfile does). Tiles, table, Home recent, user machine list and the ⋮ menu open it; the drawer is now only for users.
 - Run the original side by side to compare: `git worktree add <dir> upstream/main`, `npm ci`, add a vite `/api` proxy to the mock, `npx vite dev --port 5174`.
 

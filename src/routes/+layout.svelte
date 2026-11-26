@@ -3,6 +3,8 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import { page } from '$app/state';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 	import { ModeWatcher } from 'mode-watcher';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { Toaster } from '$lib/components/ui/sonner/index.js';
@@ -16,8 +18,12 @@
 
 	onMount(() => {
 		App.populateAll(createPopulateErrorHandler(), true);
-		if (!App.hasValidApi) goto(`${base}/settings`);
+		if (!App.hasValidApi) return goto(`${base}/settings`);
+		// opening the app root resumes the last visited page
+		const last = uiLoad('nav', { path: '' }).path;
+		if (page.url.pathname === `${base}/` && last && last !== page.url.pathname) goto(last, { replaceState: true });
 	});
+	$effect(() => uiSave('nav', { path: page.url.pathname }));
 </script>
 
 <ModeWatcher />

@@ -13,12 +13,15 @@
 	import { getSortedFilteredUsers, onlineCounts, openDrawer, dateToStr } from '$lib/common/funcs';
 	import { getUserDisplay, type Direction, type OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 
 	let showCreate = $state(false);
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
+	const saved = uiLoad('users', { sortMethod: 'id', sortDirection: 'up' as Direction, filterOnlineStatus: 'all' as OnlineStatus, filterString: '' });
+	let sortMethod = $state(saved.sortMethod);
+	let sortDirection = $state<Direction>(saved.sortDirection);
+	let filterOnlineStatus = $state<OnlineStatus>(saved.filterOnlineStatus);
+	let filterString = $state(saved.filterString);
+	$effect(() => uiSave('users', { sortMethod, sortDirection, filterOnlineStatus, filterString }));
 
 	const users = $derived(getSortedFilteredUsers(App.users.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const nodeCount = (id: string) => App.nodes.value.filter((n) => n.user.id === id).length;

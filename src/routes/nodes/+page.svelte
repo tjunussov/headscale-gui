@@ -19,17 +19,20 @@
 	import { getSortedFilteredNodes, onlineCounts, lastSeenText, machinePills, machineHref } from '$lib/common/funcs';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 	import { base } from '$app/paths';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
 	// ?add[=tab] opens Add machine (e.g. old /deploy/ links → ?add=advanced)
 	let showCreate = $state(page.url.searchParams.has("add"));
-	let addTab = $state(page.url.searchParams.get("add") || "download");
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
+	const saved = uiLoad('nodes', { addTab: 'download', sortMethod: 'id', sortDirection: 'up' as Direction, filterOnlineStatus: 'all' as OnlineStatus, filterString: '' });
+	let addTab = $state(page.url.searchParams.get("add") || saved.addTab);
+	let sortMethod = $state(saved.sortMethod);
+	let sortDirection = $state<Direction>(saved.sortDirection);
+	let filterOnlineStatus = $state<OnlineStatus>(saved.filterOnlineStatus);
+	let filterString = $state(saved.filterString);
+	$effect(() => uiSave('nodes', { addTab, sortMethod, sortDirection, filterOnlineStatus, filterString }));
 
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));

@@ -17,13 +17,15 @@
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import NodeCreate from './NodeCreate.svelte';
 	import DeployBuilder from './DeployBuilder.svelte';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import { copyToClipboard } from '$lib/common/funcs';
 	import { App } from '$lib/States.svelte';
 	import { page } from '$app/state';
 
 	let { open = $bindable(false), tab = $bindable('download') }: { open: boolean; tab?: string } = $props();
-	let os = $state('macos');
+	let os = $state(uiLoad('addMachine', { os: 'macos' }).os);
+	$effect(() => uiSave('addMachine', { os }));
 	// NodeCreate sets show=false after a successful register → close the dialog
 	let formShown = $state(true);
 	$effect(() => { if (!formShown) { open = false; formShown = true; } });
