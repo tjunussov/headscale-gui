@@ -14,7 +14,7 @@
 
 	let { acl = $bindable(), idx, open = $bindable(), loading = $bindable(false) }: { acl: ACLBuilder; idx: number; open: boolean; loading?: boolean } = $props();
 
-	const userNames = $derived(App.users.value.map((u) => u.name).toSorted());
+	const userNames = $derived(App.usersAcl.map((u) => u.name).toSorted());
 	const tags = $derived(acl.getTagNames(true));
 	const rule = $derived.by(() => ({
 		get src() { return acl.getSshRule(idx).src; },

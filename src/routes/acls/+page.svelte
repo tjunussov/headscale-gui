@@ -20,6 +20,8 @@
 	import Policies from './Policies.svelte';
 	import TagOwners from './TagOwners.svelte';
 	import SshRules from './SshRules.svelte';
+	import AutoApprovers from './AutoApprovers.svelte';
+	import BadgeCheck from '@lucide/svelte/icons/badge-check';
 
 	let acl = $state(ACLBuilder.defaultACL());
 	let loading = $state(false);
@@ -32,6 +34,7 @@
 		{ name: 'hosts', title: 'Hosts', logo: MonitorSmartphone, comp: Hosts },
 		{ name: 'policies', title: 'Policies', logo: Shield, comp: Policies },
 		{ name: 'ssh', title: 'SSH', logo: SquareTerminal, comp: SshRules },
+		{ name: 'auto-approvers', title: 'Auto Approvers', logo: BadgeCheck, comp: AutoApprovers },
 		{ name: 'config', title: 'Config', logo: Braces, comp: Config },
 	];
 

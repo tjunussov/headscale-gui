@@ -18,7 +18,7 @@
 
 	let { acl = $bindable(), idx, loading = $bindable(false), reorderUp, reorderDown }: { acl: ACLBuilder; idx: number; loading?: boolean; reorderUp: () => void; reorderDown: () => void } = $props();
 
-	const userNames = $derived(App.users.value.map((u) => u.email || u.name).toSorted());
+	const userNames = $derived(App.usersAcl.map((u) => u.name).toSorted());
 	const objects = $derived({ custom: undefined, user: userNames, host: acl.getHostNames(), group: acl.getGroupNames(true), tag: acl.getTagNames(true) });
 
 	const policy = $derived.by(() => ({

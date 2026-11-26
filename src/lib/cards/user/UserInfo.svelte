@@ -10,6 +10,7 @@
 	import UserListPreAuthKeys from './UserListPreAuthKeys.svelte';
 	import UserProvider from './UserProvider.svelte';
 	import type { User } from '$lib/common/types';
+	import { isZeroDate } from '$lib/common/funcs';
 
 	type UserInfoProps = {
 		user: User,
@@ -18,7 +19,7 @@
 </script>
 
 <CardListContainer>
-	<ItemListName item={user} allowed={user.provider.toLocaleLowerCase() !== "oidc"} />
+	<ItemListName item={user} allowed={(user.provider ?? '').toLocaleLowerCase() !== "oidc"} />
 	<CardSeparator />
 	{#if user.displayName}
 	<UserDisplayName {user} />
@@ -28,13 +29,17 @@
 	<UserEmail {user} />
 	<CardSeparator />
 	{/if}
+	{#if user.provider}
 	<UserProvider {user} />
 	<CardSeparator />
+	{/if}
+	{#if !isZeroDate(user.createdAt)}
 	<ItemCreatedAt item={user} />
 	<CardSeparator />
+	{/if}
 	<UserListNodes {user} />
 	<CardSeparator />
-	{#if user.name || user.email}
+	{#if user.id}
 	<UserListPreAuthKeys {user} />
 	<CardSeparator />
 	{/if}
