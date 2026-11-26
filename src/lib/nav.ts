@@ -10,9 +10,9 @@ import Settings from '@lucide/svelte/icons/settings';
 // Settings must stay last: without a valid API key only it is shown.
 export const nav = [
 	{ path: '/', name: 'Home', icon: House, group: 'Overview', description: 'Overview of your Headscale tailnet.' },
-	{ path: '/users', name: 'Users', icon: Users, group: 'Network', description: 'People and namespaces that own nodes.' },
-	{ path: '/nodes', name: 'Nodes', icon: MonitorSmartphone, group: 'Network', description: 'Devices registered to the tailnet.' },
-	{ path: '/routes', name: 'Routes', icon: Route, group: 'Network', description: 'Subnet and exit-node routes advertised by nodes.' },
+	{ path: '/users', name: 'Users', icon: Users, group: 'Network', description: 'People and namespaces that own machines.' },
+	{ path: '/nodes', name: 'Machines', icon: MonitorSmartphone, group: 'Network', description: 'Manage the devices connected to your tailnet.' },
+	{ path: '/routes', name: 'Routes', icon: Route, group: 'Network', description: 'Subnet and exit-node routes advertised by machines.' },
 	{ path: '/acls', name: 'ACLs', icon: Shield, group: 'Network', description: 'Build the tailnet ACL policy. Changes are local until you save.' },
 	{ path: '/deploy', name: 'Deploy', icon: Rocket, group: 'Tools', description: 'Build a tailscale up command for a new device.' },
 	{ path: '/settings', name: 'Settings', icon: Settings, group: 'Tools', description: 'Connect to your Headscale API. Stored only in this browser.' },

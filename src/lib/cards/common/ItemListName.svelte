@@ -15,7 +15,7 @@
 
 	// returns true to close the editor
 	async function rename(): Promise<boolean> {
-		if (!newName) return toastError(`${prefix === 'user' ? 'User' : 'Node'} name must not be empty`), false;
+		if (!newName) return toastError(`${prefix === 'user' ? 'User' : 'Machine'} name must not be empty`), false;
 		try {
 			if (isUser(item)) {
 				const oldName = item.name;

@@ -28,11 +28,11 @@
 
 	// upstream's six summaries, in upstream order, styled as shadcn section cards
 	const summaries = $derived([
-		{ title: 'Total Users', path: '/users', value: users.length, icon: Users, badge: `${usersOnline.length} active`, line: `${users.filter((u) => nodes.some((n) => n.user.id === u.id)).length} own nodes`, sub: 'In the tailnet' },
+		{ title: 'Total Users', path: '/users', value: users.length, icon: Users, badge: `${usersOnline.length} active`, line: `${users.filter((u) => nodes.some((n) => n.user.id === u.id)).length} own machines`, sub: 'In the tailnet' },
 		{ title: 'Online Users', path: '/users', value: usersOnline.length, icon: UserCheck, badge: `${pct(usersOnline.length, users.length)}%`, line: `${usersOnline.length} of ${users.length} online`, sub: 'With a node online' },
 		{ title: 'Valid PreAuth Keys', path: '/users', value: keys.length, icon: KeyRound, badge: `${keys.filter((k) => k.reusable).length} reusable`, line: 'Unused, unexpired', sub: 'For new devices' },
-		{ title: 'Total Nodes', path: '/nodes', value: nodes.length, icon: MonitorSmartphone, badge: `${pct(online.length, nodes.length)}% online`, line: `${nodes.length - online.length} offline`, sub: 'Registered devices' },
-		{ title: 'Online Nodes', path: '/nodes', value: online.length, icon: Wifi, badge: `${online.length}/${nodes.length}`, line: `${online.length} online now`, sub: 'Connected devices' },
+		{ title: 'Total Machines', path: '/nodes', value: nodes.length, icon: MonitorSmartphone, badge: `${pct(online.length, nodes.length)}% online`, line: `${nodes.length - online.length} offline`, sub: 'Registered to the tailnet' },
+		{ title: 'Online Machines', path: '/nodes', value: online.length, icon: Wifi, badge: `${online.length}/${nodes.length}`, line: `${online.length} online now`, sub: 'Connected devices' },
 		{ title: 'Total Routes', path: '/routes', value: routes, icon: Route, badge: `${pending} pending`, line: pending ? `${pending} to approve` : 'All approved', sub: 'Subnet & exit routes' },
 	]);
 </script>
@@ -62,7 +62,7 @@
 	<Card.Root>
 		<Card.Header>
 			<Card.Title>Recently seen</Card.Title>
-			<Card.Description>Latest node activity across all users.</Card.Description>
+			<Card.Description>Latest machine activity across all users.</Card.Description>
 			<Card.Action><Button variant="outline" size="sm" href="{base}/nodes">View all</Button></Card.Action>
 		</Card.Header>
 		<Card.Content>
@@ -76,7 +76,7 @@
 							<Table.Cell class="text-right text-muted-foreground">{lastSeenText(node)}</Table.Cell>
 						</Table.Row>
 					{:else}
-						<Table.Row><Table.Cell class="h-16 text-center text-muted-foreground">No nodes yet.</Table.Cell></Table.Row>
+						<Table.Row><Table.Cell class="h-16 text-center text-muted-foreground">No machines yet.</Table.Cell></Table.Row>
 					{/each}
 				</Table.Body>
 			</Table.Root>

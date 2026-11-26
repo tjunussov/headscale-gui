@@ -44,7 +44,7 @@
 {/snippet}
 
 <Page>
-	<PageHeader title="Nodes" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString>
+	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString>
 		{#snippet button()}<NodeCreate bind:show={showCreate} />{/snippet}
 		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 	</PageHeader>
@@ -74,7 +74,7 @@
 						<Card.Title class="flex min-w-0 items-center gap-0.5">
 							<!-- ⋮ = node meta (id, user, created) on hover -->
 							<Tooltip.Root>
-								<Tooltip.Trigger class="-ml-1 shrink-0 rounded text-muted-foreground hover:text-foreground" onclick={(e: MouseEvent) => e.stopPropagation()} aria-label="Node info">
+								<Tooltip.Trigger class="-ml-1 shrink-0 rounded text-muted-foreground hover:text-foreground" onclick={(e: MouseEvent) => e.stopPropagation()} aria-label="Machine info">
 									<EllipsisVertical class="size-4" />
 								</Tooltip.Trigger>
 								<Tooltip.Content side="top" align="start" class="grid gap-0.5 text-xs">
@@ -104,7 +104,7 @@
 					</Card.Content>
 				</Card.Root>
 			{:else}
-				<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No nodes.</p>
+				<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No machines.</p>
 			{/each}
 		</div>
 	{:else}
@@ -138,7 +138,7 @@
 							<Table.Cell><OnlineNodeIndicator {node} label /></Table.Cell>
 						</Table.Row>
 					{:else}
-						<Table.Row><Table.Cell colspan={8} class="h-24 text-center text-muted-foreground">No nodes.</Table.Cell></Table.Row>
+						<Table.Row><Table.Cell colspan={8} class="h-24 text-center text-muted-foreground">No machines.</Table.Cell></Table.Row>
 					{/each}
 				</Table.Body>
 			</Table.Root>

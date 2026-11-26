@@ -45,7 +45,7 @@
 				<CardTile id={user.id} label={getUserDisplay(user)} onclick={() => openDrawer('userDrawer-' + user.id, user)}>
 					{#snippet lead()}<OnlineUserIndicator {user} />{/snippet}
 					<CardTileEntry title="Created:">{dateToStr(user.createdAt)}</CardTileEntry>
-					<CardTileEntry title="Nodes:">{nodeCount(user.id)}</CardTileEntry>
+					<CardTileEntry title="Machines:">{nodeCount(user.id)}</CardTileEntry>
 				</CardTile>
 			{/each}
 		</CardTilePage>
