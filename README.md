@@ -2,6 +2,11 @@
 
 Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) rebuilt on [shadcn-svelte](https://www.shadcn-svelte.com) (Svelte 5 + Tailwind v4), following the shadcn dashboard patterns.
 
+<p>
+  <img src="./img/screenshot-home.png" width="49%" alt="Home: summary cards and recently seen machines">
+  <img src="./img/screenshot-machines.png" width="49%" alt="Machines: tiles with status, addresses, route pills and tags">
+</p>
+
 ```bash
 npm install && npm run dev:mock     # UI + mock Headscale → http://localhost:5173
 npm run dev                         # UI only (set API URL/key in Settings)
