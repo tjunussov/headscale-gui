@@ -1,71 +1,31 @@
 <script lang="ts">
-	import { focus } from '$lib/common/funcs';
 	import type { EventHandler } from 'svelte/elements';
-	import RawMdiRename from '~icons/mdi/rename-outline';
-	import RawMdiCheckCircleOutline from '~icons/mdi/check-circle-outline';
-	import RawMdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
-	import { slide } from 'svelte/transition';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import Pencil from '@lucide/svelte/icons/pencil';
+	import Check from '@lucide/svelte/icons/check';
+	import X from '@lucide/svelte/icons/x';
 
 	type TextProps = {
-		value: string,
-		valueNew: string,
-		submit: EventHandler<SubmitEvent, HTMLFormElement>,
-		showRenameIcon?: boolean,
-		classes?: string,
-	}
-
-	let {
-		value = $bindable(),
-		valueNew = $bindable(),
-		submit,
-		showRenameIcon = false,
-		classes,
-	}: TextProps = $props()
-
-	let showModify = $state(false);
+		value: string;
+		valueNew: string;
+		submit: EventHandler<SubmitEvent, HTMLFormElement>;
+		showRenameIcon?: boolean;
+		classes?: string;
+	};
+	let { value = $bindable(), valueNew = $bindable(), submit, showRenameIcon = false, classes }: TextProps = $props();
+	let editing = $state(false);
 </script>
 
-{#if !showModify}
-	<button
-		class="flex flex-row ml-2"
-		onclick={() => {
-			valueNew = value;
-			showModify = true;
-		}}
-	>
-		<span class={classes}>{value}</span>
-		{#if showRenameIcon}
-			<span class="text-xs ml-1"><RawMdiRename /></span>
-		{/if}
+{#if !editing}
+	<button class="group inline-flex items-center gap-1.5 {classes}" onclick={() => { valueNew = value; editing = true; }}>
+		{value}
+		{#if showRenameIcon}<Pencil class="size-3 opacity-50 group-hover:opacity-100" />{/if}
 	</button>
 {:else}
-	<form
-        class="flex flex-row ml-2"
-		onsubmit={(x) => {
-			x.preventDefault()
-			if(submit(x)) {
-				showModify = false
-			}
-		}}
-	>
-		<input
-			use:focus
-			type="text"
-			class="input {classes} p-0 m-0 text-sm"
-			bind:value={valueNew}
-		/>
-		<span class="text-right flex space-x-2 ml-2">
-			<button type="submit">
-				<RawMdiCheckCircleOutline />
-			</button>
-			<button
-				type="button"
-				onclick={() => {
-					showModify = false;
-				}}
-			>
-				<RawMdiCloseCircleOutline />
-			</button>
-		</span>
+	<form class="flex items-center gap-1" onsubmit={(e) => { e.preventDefault(); if (submit(e)) editing = false; }}>
+		<Input class="h-8" bind:value={valueNew} autofocus />
+		<Button type="submit" size="icon-sm" variant="ghost"><Check /></Button>
+		<Button type="button" size="icon-sm" variant="ghost" onclick={() => (editing = false)}><X /></Button>
 	</form>
 {/if}

@@ -1,84 +1,42 @@
 <script lang="ts">
-	import { toOptions } from '$lib/common/funcs';
-    import { clickOutside } from '$lib/common/usables'
-	import { Autocomplete } from '@skeletonlabs/skeleton';
+	// chips + combobox (shadcn Popover + Command); free text when no options
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import TagInput from './TagInput.svelte';
+	import X from '@lucide/svelte/icons/x';
+	import Plus from '@lucide/svelte/icons/plus';
 
-    type MultiSelectProps = {
-        id: string,
-        items: string[],
-        options?: string[],
-        placeholder?: string,
-        onItemClick: (item: string) => void,
-    }
-
-    let {
-        id = $bindable(),
-        items = $bindable(),
-        options = undefined,
-        placeholder = "Select...",
-        onItemClick,
-    }: MultiSelectProps = $props()
-
-    let selectShow = $state(false)
-    let selectItem = $state('')
-    const selectInputID = $derived(id + '-select-item')
-	const selectOptions = $derived(options === undefined ? undefined : toOptions(options))
-
-
-    function selectInputFocus () {
-        document.getElementById(selectInputID)?.focus()
-    }
-
-    function selectHide() {
-        selectShow = false
-    }
-
-    function addItem(event: Event) {
-        event.preventDefault()
-        if (options === undefined && !items.includes(selectItem)){ 
-            items.push(selectItem);
-        }
-        selectItem = ''
-    }
-
+	let { items = $bindable(), options, placeholder = 'Add…', onItemClick }: { id?: string; items: string[]; options?: string[]; placeholder?: string; onItemClick: (item: string) => void } = $props();
+	let open = $state(false);
+	const available = $derived((options ?? []).filter((o) => !items.includes(o)));
 </script>
 
-<div use:clickOutside={selectHide}>
-    <div class="pb-2">
-        {#each items as item}
-        <button class="chip variant-soft hover:variant-soft-error mr-1 mt-1" onclick={() => {onItemClick(item); selectInputFocus() }}>
-            <span>{item}</span>
-        </button>
-        {/each}
-    </div>
-    <div>
-        <form onsubmit={addItem}
-        >
-        <input
-            id={selectInputID}
-            class="input variant-soft rounded-md"
-            placeholder={placeholder}
-            bind:value={selectItem}
-            onfocus={() => { selectShow = true; }}
-        />
-        </form>
-
-        <!-- onfocus={() => { groupMemberSelectShow = true; }} -->
-
-        {#if options !== undefined && selectShow}
-        <div class="card w-full max-h-40 p-4 mt-2 overflow-y-auto" tabindex="-1">
-            <Autocomplete
-                class="rounded-md"
-                bind:input={selectItem}
-                options={selectOptions}
-                denylist={items}
-                on:selection={(evt)=> {
-                    items.push(evt.detail.value)
-                    selectItem = ''
-                    selectInputFocus()
-                }}
-            />
-        </div>
-        {/if}
-    </div>
-</div>
+{#if options === undefined}
+	<TagInput value={items} {placeholder} onchange={(v) => { v.filter((x) => !items.includes(x)).forEach((x) => items.push(x)); items.filter((x) => !v.includes(x)).forEach(onItemClick); }} />
+{:else}
+	<div class="flex flex-wrap items-center gap-1.5">
+		{#each items as item (item)}
+			<Badge variant="secondary" class="gap-1 pr-1">
+				{item}<button class="rounded-sm opacity-60 hover:opacity-100" onclick={() => onItemClick(item)} aria-label="Remove {item}"><X class="size-3" /></button>
+			</Badge>
+		{/each}
+		<Popover.Root bind:open>
+			<Popover.Trigger>{#snippet child({ props })}<Button variant="outline" size="xs" {...props}><Plus />Add</Button>{/snippet}</Popover.Trigger>
+			<Popover.Content class="w-64 p-0" align="start">
+				<Command.Root>
+					<Command.Input {placeholder} />
+					<Command.List>
+						<Command.Empty>Nothing to add.</Command.Empty>
+						<Command.Group>
+							{#each available as opt (opt)}
+								<Command.Item value={opt} onSelect={() => { items.push(opt); open = false; }}>{opt}</Command.Item>
+							{/each}
+						</Command.Group>
+					</Command.List>
+				</Command.Root>
+			</Popover.Content>
+		</Popover.Root>
+	</div>
+{/if}

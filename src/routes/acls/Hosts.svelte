@@ -1,15 +1,13 @@
 <script lang="ts">
-	import CardListPage from '$lib/cards/CardListPage.svelte';
-	import { saveConfig, type ACLBuilder } from '$lib/common/acl.svelte';
+	import AclToolbar from '$lib/parts/AclToolbar.svelte';
+	import { type ACLBuilder } from '$lib/common/acl.svelte';
 	import { toastError, toastSuccess } from '$lib/common/funcs';
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	
 	import NewItem from '$lib/parts/NewItem.svelte';
 	import HostListCard from '$lib/cards/acl/HostListCard.svelte';
 	import { debug } from '$lib/common/debug';
 	import { App } from '$lib/States.svelte';
-	import RawMdiSave from '~icons/mdi/content-save-outline'
 
-	const ToastStore = getToastStore();
 
 	let {acl = $bindable(), loading = $bindable(false)}: {acl: ACLBuilder, loading?: boolean} = $props();
 
@@ -29,14 +27,14 @@
 		loading = true;
 		try {
 			acl.createHost(newHostName, newHostCIDR);
-			toastSuccess(`Host '${newHostName}' created`, ToastStore);
+			toastSuccess(`Host '${newHostName}' created`);
 			newHostName = '';
 			newHostCIDR = '';
 			showCreateHost = false;
 		} catch (e) {
 			debug(e)
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		} finally {
 			loading = false;
@@ -59,43 +57,15 @@
 	});
 </script>
 
-
-<CardListPage>
-	<div class="mb-2">
-		<div class="flex flex-row space-x-2">
-			<button disabled={loading} class="btn-icon rounded-md variant-filled-success disabled:opacity-50 w-8 text-xl" onclick={() => { 
-				saveConfig(acl, ToastStore, {setLoadingTrue: () => { loading = true}, setLoadingFalse: ()=> { loading = false }})
-			}}>
-				<RawMdiSave />
-			</button>
-			<button class="btn-sm rounded-md variant-filled-success" onclick={toggleShowCreateHost}>
-				Create Host
-			</button>
-		</div>
-		{#if showCreateHost}
-			<NewItem
-				title="Host"
-				disabled={loading}
-				bind:name={newHostName}
-				bind:value={newHostCIDR}
-				submit={() => {
-					newHost();
-				}}
-			/>
-		{/if}
-	</div>
-
-	<div class="flex items-center pb-4 mt-4">
-		<input
-			autocomplete="off"
-			type="text"
-			class="input rounded-md text-sm mb-0"
-			placeholder="Filter Hosts..."
-			bind:value={hostsFilter}
-		/>
-	</div>
-	<!--{#each filteredHosts.sort(([k1], [k2]) => k1.localeCompare(k2)) as [k, v]}-->
-	{#each filteredHosts as [hostName, hostCIDR]}
+<div class="flex flex-col gap-4">
+<AclToolbar bind:filter={hostsFilter} placeholder="Filter hosts…" label="New host" onclick={toggleShowCreateHost}>
+	{#if showCreateHost}<NewItem title="Host" disabled={loading} bind:name={newHostName} bind:value={newHostCIDR} submit={() => newHost()} />{/if}
+</AclToolbar>
+<div class="divide-y rounded-lg border">
+	{#each filteredHosts as [hostName, hostCIDR] (hostName)}
 		<HostListCard bind:acl {hostName} {hostCIDR} {userNames} />
+	{:else}
+		<p class="p-4 text-sm text-muted-foreground">No hosts defined.</p>
 	{/each}
-</CardListPage>
+</div>
+</div>

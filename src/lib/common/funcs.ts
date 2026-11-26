@@ -1,5 +1,7 @@
-import type { DrawerStore, ToastStore } from '@skeletonlabs/skeleton';
-import type { DrawerSettings } from '@skeletonlabs/skeleton';
+import { toast } from 'svelte-sonner';
+export { openDrawer, closeDrawer } from './drawer.svelte';
+
+
 import IPAddr from 'ipaddr.js';
 import { debug } from './debug';
 import DOMPurify from 'dompurify';
@@ -167,54 +169,13 @@ export function dateToStr(d: Date | string) {
 	});
 }
 
-export function toastSuccess(message: string, toastStore: ToastStore) {
-	message = DOMPurify.sanitize(message)
-	toastStore.trigger({
-		message,
-		background: 'variant-filled-success',
-	});
-}
+export const toastSuccess = (message: string) => toast.success(DOMPurify.sanitize(message));
+export const toastWarning = (message: string) => toast.warning(DOMPurify.sanitize(message));
+export const toastError = (message: string, error?: Error) =>
+	toast.error(DOMPurify.sanitize(message + (error ? (message ? ': ' : '') + error.message : '')));
 
-export function toastWarning(message: string, toastStore: ToastStore) {
-	message = DOMPurify.sanitize(message)
-	toastStore.trigger({
-		message,
-		background: 'variant-filled-warning',
-	});
-}
-
-export function toastError(message: string, toastStore: ToastStore, error?: Error) {
-	message = DOMPurify.sanitize(message)
-	if (error !== undefined) {
-		if (message.length > 0) {
-			message += ': ';
-		}
-		message += error.message;
-	}
-	toastStore.trigger({
-		message,
-		background: 'variant-filled-error',
-	});
-}
-
-export function copyToClipboard(
-	s: string,
-	toastStore?: ToastStore,
-	toastMessage = 'Copied to Clipboard!',
-) {
-	navigator.clipboard
-		.writeText(s)
-		.then(() => {
-			if (toastStore != undefined) {
-				toastSuccess(toastMessage, toastStore);
-			}
-		})
-		.catch(() => {
-			if (toastStore) {
-				toastError('Failed to copy to clipboard!', toastStore);
-			}
-		});
-}
+export const copyToClipboard = (s: string, toastMessage = 'Copied to Clipboard!') =>
+	navigator.clipboard.writeText(s).then(() => toastSuccess(toastMessage), () => toastError('Failed to copy to clipboard!'));
 
 export function isValidTag(tag: string): boolean {
 	// the only restrictions I could find were to be all lowercase, no-spaces
@@ -282,19 +243,6 @@ export function isValidCIDR(cidr: string): boolean {
 	return false;
 }
 
-function makeDrawerSettings(
-	id: string,
-	meta: unknown,
-	position: 'top' | 'bottom' | 'left' | 'right' = 'right',
-	width: string = 'w-10/12 md:w-9/12 lg:w-8/12 xl:w-6/12',
-	padding: string = '',
-) {
-	return { id, position, width, padding, meta } as DrawerSettings;
-}
-
-export function openDrawer(drawerStore: DrawerStore, id: string, meta: unknown) {
-	drawerStore.open(makeDrawerSettings(id, meta));
-}
 export function toOptions(values: string[]): {label: string, value:string}[] {
 	return values.map(v => ({
 		label: v,
@@ -338,34 +286,17 @@ export function getSortedUsers(users: User[], sortMethod: string, sortDirection:
 }
 
 
+const nodeSortKey: Record<string, (n: Node) => number | string> = {
+	id: (n) => parseInt(n.id),
+	name: (n) => n.givenName,
+	user: (n) => n.user.name,
+	lastseen: (n) => (n.online ? Infinity : new Date(n.lastSeen ?? 0).getTime()),
+};
+
 export function getSortedNodes(nodes: Node[], sortMethod: string, sortDirection: Direction): Node[] {
-	if (sortMethod === 'id') {
-		nodes = nodes.sort((a: Node, b: Node) => {
-			const aid = parseInt(a.id);
-			const bid = parseInt(b.id);
-			if (aid < bid) {
-				return -1;
-			}
-			if (aid > bid) {
-				return 1;
-			}
-			return 0;
-		});
-	} else if (sortMethod === 'name') {
-		nodes = nodes.sort((a: Node, b: Node) => {
-			if (a.givenName < b.givenName) {
-				return -1;
-			}
-			if (a.givenName > b.givenName) {
-				return 1;
-			}
-			return 0;
-		});
-	}
-	if (sortDirection === 'down') {
-		return nodes.reverse();
-	}
-	return nodes;
+	const k = nodeSortKey[sortMethod] ?? nodeSortKey.id;
+	const sorted = nodes.toSorted((a, b) => (k(a) < k(b) ? -1 : k(a) > k(b) ? 1 : 0));
+	return sortDirection === 'down' ? sorted.reverse() : sorted;
 }
 
 export function filterUser(user: User, filterString: string, onlineStatus: OnlineStatus = "all"): boolean {
@@ -450,3 +381,4 @@ export function getSortedFilteredNodes(
 	}
 	return nodesSortedFiltered
 }
+export const lastSeenText = (n: Node) => (n.online ? 'Online now' : n.lastSeen && new Date(n.lastSeen).getFullYear() > 1970 ? getTimeDifferenceMessage(getTime(n.lastSeen)) : 'Never');

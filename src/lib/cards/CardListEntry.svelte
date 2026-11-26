@@ -1,48 +1,29 @@
 <script lang="ts">
-	import type { Snippet } from "svelte";
+	import type { Snippet } from 'svelte';
+	import { cn } from '$lib/utils';
 
 	type CardListEntryProps = {
-		title?: string,
-		value?: any,
-		top?: boolean,
-		titleClasses?: string,
-		valueClasses?: string,
-		childTitle?: Snippet,
-		childBottom?: Snippet,
-		children?: Snippet,
-	}
-	let {
-		title = undefined,
-		value = undefined,
-		top = false,
-		titleClasses = 'text-left',
-		valueClasses = 'text-right',
-		childTitle = undefined,
-		childBottom = undefined,
-		children = undefined,
-	}: CardListEntryProps = $props()
+		title?: string;
+		value?: any;
+		top?: boolean;
+		titleClasses?: string;
+		valueClasses?: string;
+		childTitle?: Snippet;
+		childBottom?: Snippet;
+		children?: Snippet;
+	};
+	let { title, value, top = false, titleClasses = '', valueClasses = '', childTitle, childBottom, children }: CardListEntryProps = $props();
 </script>
 
-<div class="grid py-0 grid-cols-12">
-	<div class="grid grid-cols-12 col-span-12 justify-between {top ? 'items-top' : 'items-center'}">
-		<!-- Left-aligned title -->
-		<div class="grid col-span-5 {titleClasses}">
-			{#if title !== undefined}
-				{title}
-			{:else if childTitle !== undefined}
-			 	{@render childTitle()}
-			{/if}
+<!-- shadcn-style description row: muted label left, value right -->
+<div class="py-3 text-sm">
+	<div class={cn('flex justify-between gap-4', top ? 'items-start' : 'items-center')}>
+		<div class={cn('shrink-0 text-muted-foreground', titleClasses)}>
+			{#if title !== undefined}{title.replace(/:$/, '')}{:else}{@render childTitle?.()}{/if}
 		</div>
-		<!-- Right-aligned slot or value -->
-		<div class="grid col-span-7 {valueClasses}">
-			{#if value !== undefined}
-				{value}
-			{:else if children !== undefined}
-				{@render children()}
-			{/if}
+		<div class={cn('min-w-0 text-right font-medium', valueClasses)}>
+			{#if value !== undefined}{value}{:else}{@render children?.()}{/if}
 		</div>
 	</div>
-	{#if childBottom}
-		{@render childBottom()}
-	{/if}
+	{@render childBottom?.()}
 </div>

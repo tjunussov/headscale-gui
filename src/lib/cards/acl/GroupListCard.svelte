@@ -9,12 +9,11 @@
 
 	import { App } from '$lib/States.svelte';
 	import { debug } from '$lib/common/debug';
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	
 	import { toastSuccess, toastError } from '$lib/common/funcs';
 
-	import RawMdiGroup from '~icons/mdi/account-group-outline';
+	import RawMdiGroup from '@lucide/svelte/icons/users';
 
-	const ToastStore = getToastStore();
 
 	type GroupListCardProps = {
 		acl: ACLBuilder,
@@ -47,13 +46,13 @@
 		try {
 			if (groupName !== groupNameNew) {
 				acl.renameGroup(groupName, groupNameNew);
-				toastSuccess(`Group renamed from '${groupName}' to '${groupNameNew}'`, ToastStore);
+				toastSuccess(`Group renamed from '${groupName}' to '${groupNameNew}'`);
 				groupName = groupNameNew;
 			}
 			return true;
 		} catch (e) {
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 			debug(e)
 		}
@@ -63,10 +62,10 @@
 		deleting = true;
 		try {
 			acl.deleteGroup(groupName);
-			toastSuccess(`Group '${groupName}' deleted`, ToastStore);
+			toastSuccess(`Group '${groupName}' deleted`);
 		} catch (e) {
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 			debug(e)
 		} finally {
@@ -85,7 +84,7 @@
 			acl.setGroupMembers(groupName, members);
 		} catch (e) {
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		} finally {
 			loading = false;
@@ -96,13 +95,13 @@
 <ListEntry id={groupName} name={groupName} logo={RawMdiGroup} bind:open>
 	{#snippet children()}
 	<CardListContainer>
-		<h3 class="font-mono mb-4 flex flex-row items-center">
+		<h3 class="mb-3 flex items-center gap-1 text-sm text-muted-foreground">
 			<span>Members of</span>
 			<Text
 				bind:value={group.name}
 				bind:valueNew={groupNameNew}
 				submit={()=>{ group.name = groupNameNew; return true }}
-				classes="font-extralight text-secondary-500 dark:text-secondary-300 rounded-md"
+				classes="font-medium text-foreground"
 				showRenameIcon={true}
 			/>
 		</h3>
@@ -114,7 +113,7 @@
 			onItemClick={removeMember}
 		/>
 		<div class="pt-4">
-			<Delete func={deleteGroup} />
+			<Delete label="Delete" func={deleteGroup} />
 		</div>
 	</CardListContainer>
 	{/snippet}

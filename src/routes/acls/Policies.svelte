@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { Accordion, getToastStore } from '@skeletonlabs/skeleton';
-	import { ACLBuilder, HAMetaDefault, saveConfig, type AclPolicies, type AclPoliciesIndexed } from '$lib/common/acl.svelte';
+	import AclToolbar from '$lib/parts/AclToolbar.svelte';
+	import { ACLBuilder, HAMetaDefault, type AclPolicies, type AclPoliciesIndexed } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastSuccess } from '$lib/common/funcs';
-	import CardListPage from '$lib/cards/CardListPage.svelte';
-	import RawMdiSave from '~icons/mdi/content-save-outline'
 
 	import PolicyListCard from '$lib/cards/acl/PolicyListCard.svelte';
 
-	const ToastStore = getToastStore();
 
 	let {acl = $bindable(), loading = $bindable(false)}: {acl: ACLBuilder, loading?: boolean} = $props();
 	let policyFilterString = $state('')
@@ -39,7 +36,7 @@
 
 		acl.createPolicy(policy)
 		debug("created new policy at index " + (acl.acls.length - 1).toString())
-		toastSuccess('Created Policy #' + acl.acls.length, ToastStore)
+		toastSuccess('Created Policy #' + acl.acls.length)
 	}
 
 	function makeReorderFunc(idx: number, direction: 'up' | 'down'): () => void {
@@ -59,38 +56,11 @@
 	}
 </script>
 
-<CardListPage>
-	<div class="mb-2">
-		<div class="flex flex-row space-x-2">
-			<button disabled={loading} class="btn-icon rounded-md variant-filled-success disabled:opacity-50 w-8 text-xl" onclick={() => { 
-				saveConfig(acl, ToastStore, {setLoadingTrue: () => { loading = true}, setLoadingFalse: ()=> { loading = false }})
-			}}>
-				<RawMdiSave />
-			</button>
-			<button class="btn-sm rounded-md variant-filled-success" onclick={newPolicy}>
-				Create Policy
-			</button>
-		</div>
-	</div>
-
-	<div class="flex items-center pb-4 mt-4">
-		<input
-			autocomplete="off"
-			type="text"
-			class="input rounded-md text-sm mb-0"
-			placeholder="Filter Policies..."
-			bind:value={policyFilterString}
-		/>
-	</div>
-	<Accordion autocollapse={false}>
-	{#each filteredPolicies as {idx}}
-		<PolicyListCard 
-			bind:acl
-			bind:loading
-			{idx}
-			reorderUp={makeReorderFunc(idx, 'up')}
-			reorderDown={makeReorderFunc(idx, 'down')}
-			/>
+<div class="flex flex-col gap-4">
+<AclToolbar bind:filter={policyFilterString} placeholder="Filter policies…" label="New policy" onclick={newPolicy}></AclToolbar>
+<div class="flex flex-col gap-3">
+	{#each filteredPolicies as { idx } (idx)}
+		<PolicyListCard bind:acl bind:loading {idx} reorderUp={makeReorderFunc(idx, 'up')} reorderDown={makeReorderFunc(idx, 'down')} />
 	{/each}
-	</Accordion>
-</CardListPage>
+</div>
+</div>

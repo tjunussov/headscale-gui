@@ -1,42 +1,21 @@
 <script lang="ts">
 	import CardListEntry from '../CardListEntry.svelte';
-	import type { Node, User } from '$lib/common/types';
+	import type { User } from '$lib/common/types';
 	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
 	import { openDrawer } from '$lib/common/funcs';
-	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { App } from '$lib/States.svelte';
 
-	type UserListNodesProps = {
-		user: User,
-		title?: string,
-	}
-	let {
-		user = $bindable(),
-		title = 'Nodes:',
-	}: UserListNodesProps = $props();
-
-	const drawerStore = getDrawerStore();
-
-	const filteredNodes = $derived.by(() => {
-		if (App.users.value.filter((u) => u.id == user.id).length == 1) {
-			return App.nodes.value.filter((n) => n.user.id == user.id);
-		}
-		return [];
-	});
+	let { user = $bindable(), title = 'Nodes' }: { user: User; title?: string } = $props();
+	const nodes = $derived(App.nodes.value.filter((n) => n.user.id == user.id));
 </script>
 
-<CardListEntry {title}>
-	{#each filteredNodes as node}
-		<div class="flex flex-row items-center gap-3 justify-end">
-			<a
-				href=" "
-				onclick={() => {
-					openDrawer(drawerStore, 'nodeDrawer-' + node.id, node);
-				}}
-			>
-				{node.givenName} ({node.name})
-			</a>
+<CardListEntry {title} top>
+	{#each nodes as node (node.id)}
+		<button class="flex w-full items-center justify-end gap-2 py-0.5 underline-offset-4 hover:underline" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}>
+			{node.givenName}<span class="font-normal text-muted-foreground">{node.name}</span>
 			<OnlineNodeIndicator {node} />
-		</div>
+		</button>
+	{:else}
+		<span class="text-muted-foreground">—</span>
 	{/each}
 </CardListEntry>

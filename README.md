@@ -1,6 +1,6 @@
 # TJNPVScale
 
-Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) with a reworked monochrome, shadcn-style UI.
+Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) rebuilt on [shadcn-svelte](https://www.shadcn-svelte.com) (Svelte 5 + Tailwind v4), following the shadcn dashboard patterns.
 
 ```bash
 npm install && npm run dev          # dev server
@@ -8,7 +8,7 @@ ENDPOINT=/admin npm run build       # static build -> ./build
 git fetch upstream && git merge upstream/main   # pull upstream fixes
 ```
 
-Theme lives in `src/theme.ts` (zinc palette) + overrides in `src/app.postcss`.
+UI: shadcn-svelte components in `src/lib/components/ui` (add more with `npx shadcn-svelte@latest add <name>`), theme tokens in `src/app.css`, app shell in `src/lib/components/app-sidebar.svelte` / `site-header.svelte`, nav in `src/lib/nav.ts`.
 
 ---
 
