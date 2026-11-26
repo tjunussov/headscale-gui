@@ -1,0 +1,1 @@
+import"./bkqoW8Ma.js";import{p as r,a}from"./D24QuN6t.js";import{p as n}from"./Bl8SfYO1.js";import{S as l}from"./C9SoX0pg.js";function u(t,e){r(e,!0);let o=n(e,"label",3,!1);l(t,{get online(){return e.node.online},get label(){return o()}}),a()}export{u as O};

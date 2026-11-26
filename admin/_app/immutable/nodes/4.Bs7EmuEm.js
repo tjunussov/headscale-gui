@@ -1,0 +1,1 @@
+import"../chunks/bkqoW8Ma.js";import{i as a}from"../chunks/B41cmpDF.js";import{p as t,b as p,a as r}from"../chunks/D24QuN6t.js";import{g as e}from"../chunks/C6cgJ5T_.js";import{b as s}from"../chunks/BW_92enB.js";function u(m,o){t(o,!1),p(()=>e(`${s}/nodes/?add=advanced`,{replaceState:!0})),a(),r()}export{u as component};
