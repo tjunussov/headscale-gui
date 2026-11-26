@@ -60,7 +60,8 @@
 			{/each}
 		</CardListPage>
 	{:else if App.layoutNode.value === 'tile'}
-		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+		<!-- as many ≥240px columns as fit: 4 at ~1100px content, 5+ on wider screens -->
+		<div class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
 			{#each nodes as node (node.id)}
 				<!-- compact tile; offline nodes dimmed (full opacity on hover/focus) -->
 				<Card.Root
