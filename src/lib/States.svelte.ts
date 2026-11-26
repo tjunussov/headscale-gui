@@ -8,6 +8,8 @@ import { apiGet } from './common/api';
 import { arraysEqual, clone, toastError, toastWarning } from './common/funcs';
 import { debug } from './common/debug';
 
+export type LayoutStyle = 'list' | 'tile';
+
 export type Valued<T> = {
     value: T
 }
@@ -119,6 +121,11 @@ export class HeadscaleAdmin {
     hasApiUrl = $derived<boolean>(isInitialized() && !!this.apiUrl.value)
     hasApi = $derived(this.hasApiKey && this.hasApiUrl)
     hasValidApi = $derived(this.hasApi && this.apiKeyInfo.value.authorized === true)
+
+    // list/tile view per page (same localStorage keys as upstream)
+    layoutUser = new StateLocal<LayoutStyle>('layoutUser', 'list');
+    layoutNode = new StateLocal<LayoutStyle>('layoutNode', 'list');
+    layoutRoute = new StateLocal<LayoutStyle>('layoutRoute', 'list');
 
     // deployments
     deploymentDefaults = new StateLocal<Deployment>('deploymentDefaults', {

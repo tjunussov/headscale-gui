@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import ListToolbar from '$lib/parts/ListToolbar.svelte';
@@ -21,11 +22,36 @@
 	const nodeCount = (id: string) => App.nodes.value.filter((n) => n.user.id === id).length;
 </script>
 
+{#snippet kv(label: string, value: string)}
+	<div class="flex justify-between gap-4"><span class="text-muted-foreground">{label}</span><span class="truncate text-right font-medium">{value}</span></div>
+{/snippet}
+
 <PageHeader title="Users" description="People and namespaces that own nodes.">
 	{#snippet actions()}<UserCreate />{/snippet}
 </PageHeader>
 
-<ListToolbar bind:status bind:search {counts} />
+<ListToolbar bind:status bind:search {counts} layout={App.layoutUser} />
+
+{#if App.layoutUser.value === 'tile'}
+<div class="grid gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+	{#each rows as user (user.id)}
+		<Card.Root class="cursor-pointer gap-4 transition-colors hover:border-foreground/25" role="button" tabindex={0} onclick={() => openDrawer('userDrawer-' + user.id, user)} onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && openDrawer('userDrawer-' + user.id, user)}>
+			<Card.Header>
+				<Card.Title class="truncate">{getUserDisplay(user)}</Card.Title>
+				<Card.Description class="truncate">#{user.id}{user.email ? ` · ${user.email}` : ''}</Card.Description>
+				<Card.Action><OnlineUserIndicator {user} label /></Card.Action>
+			</Card.Header>
+			<Card.Content class="grid gap-1.5 text-sm">
+				{@render kv('Nodes', String(nodeCount(user.id)))}
+				{@render kv('Provider', user.provider || 'local')}
+				{@render kv('Created', dateToStr(user.createdAt))}
+			</Card.Content>
+		</Card.Root>
+	{:else}
+		<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No users.</p>
+	{/each}
+</div>
+{:else}
 
 <div class="overflow-hidden rounded-lg border">
 	<Table.Root>
@@ -59,3 +85,4 @@
 		</Table.Body>
 	</Table.Root>
 </div>
+{/if}

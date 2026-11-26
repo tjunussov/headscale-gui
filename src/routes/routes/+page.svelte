@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Table from '$lib/components/ui/table/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import ListToolbar from '$lib/parts/ListToolbar.svelte';
@@ -21,9 +22,32 @@
 	const exit = (r: string) => r === '0.0.0.0/0' || r === '::/0';
 </script>
 
+{#snippet kv(label: string, value: string)}
+	<div class="flex justify-between gap-4"><span class="text-muted-foreground">{label}</span><span class="truncate text-right font-medium">{value}</span></div>
+{/snippet}
+
 <PageHeader title="Routes" description="Subnet and exit-node routes advertised by nodes. Toggle to approve." />
 
-<ListToolbar bind:status bind:search {counts} />
+<ListToolbar bind:status bind:search {counts} layout={App.layoutRoute} />
+
+{#if App.layoutRoute.value === 'tile'}
+<div class="grid gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+	{#each nodes as node (node.id)}
+		<Card.Root class="gap-3">
+			<Card.Header>
+				<Card.Title><button class="flex items-center gap-2 underline-offset-4 hover:underline" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}><OnlineNodeIndicator {node} />{node.givenName}</button></Card.Title>
+				<Card.Description>{node.user.name}</Card.Description>
+				{#if node.availableRoutes.some(exit)}<Card.Action><Badge variant="outline">Exit node</Badge></Card.Action>{/if}
+			</Card.Header>
+			<Card.Content class="divide-y">
+				{#each node.availableRoutes as route (route)}<NodeRoute {route} {node} />{/each}
+			</Card.Content>
+		</Card.Root>
+	{:else}
+		<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No advertised routes.</p>
+	{/each}
+</div>
+{:else}
 
 <div class="overflow-hidden rounded-lg border">
 	<Table.Root>
@@ -54,3 +78,4 @@
 		</Table.Body>
 	</Table.Root>
 </div>
+{/if}
