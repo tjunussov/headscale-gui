@@ -4,6 +4,12 @@
 	import { toggleMode } from 'mode-watcher';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
+	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import { page } from '$app/state';
+	import { nav } from '$lib/nav';
+
+	const current = $derived(nav.find((n) => n.path === page.route.id));
 </script>
 
 <header
@@ -11,6 +17,14 @@
 >
 	<div class="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
 		<Sidebar.Trigger class="-ms-1" />
+		<Separator orientation="vertical" class="mx-2 data-[orientation=vertical]:h-4" />
+		<Breadcrumb.Root>
+			<Breadcrumb.List>
+				<Breadcrumb.Item class="hidden md:block">{current?.group ?? 'TJNPVScale'}</Breadcrumb.Item>
+				<Breadcrumb.Separator class="hidden md:block" />
+				<Breadcrumb.Item><Breadcrumb.Page>{current?.name ?? ''}</Breadcrumb.Page></Breadcrumb.Item>
+			</Breadcrumb.List>
+		</Breadcrumb.Root>
 		<div class="ms-auto flex items-center gap-2">
 			<Button variant="ghost" size="icon" onclick={toggleMode} aria-label="Toggle theme">
 				<Sun class="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />

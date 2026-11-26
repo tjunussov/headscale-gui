@@ -8,6 +8,8 @@
 	import LayoutGrid from '@lucide/svelte/icons/layout-grid';
 	import LayoutList from '@lucide/svelte/icons/layout-list';
 	import type { LayoutStyle, Valued } from '$lib/States.svelte';
+	import { page } from '$app/state';
+	import { nav } from '$lib/nav';
 
 	type PageHeaderProps = {
 		title: string;
@@ -17,14 +19,19 @@
 		buttonText?: string;
 		button?: Snippet;
 	};
-	let { title, filterString = $bindable(undefined), show = $bindable(false), layout, buttonText = 'Create', button }: PageHeaderProps = $props();
+	let { title, description, filterString = $bindable(undefined), show = $bindable(false), layout, buttonText = 'Create', button }: PageHeaderProps & { description?: string } = $props();
+	// default subtitle comes from the nav entry of the current route
+	const subtitle = $derived(description ?? nav.find((n) => n.path === page.route.id)?.description);
 
 	const regexIsValid = $derived.by(() => { try { RegExp(filterString ?? ''); return true; } catch { return false; } });
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="flex items-center justify-between gap-4">
-		<h1 class="text-2xl font-semibold tracking-tight">{title}</h1>
+	<div class="flex items-end justify-between gap-4">
+		<div class="space-y-1">
+			<h1 class="text-3xl font-bold tracking-tight">{title}</h1>
+			{#if subtitle}<p class="text-muted-foreground">{subtitle}</p>{/if}
+		</div>
 		{#if layout}
 			<ToggleGroup.Root type="single" variant="outline" value={layout.value} onValueChange={(v) => v && (layout.value = v as LayoutStyle)}>
 				<ToggleGroup.Item value="tile" aria-label="Tile view"><LayoutGrid /></ToggleGroup.Item>
