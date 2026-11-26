@@ -10,6 +10,8 @@
 	const sidebar = useSidebar();
 	const items = $derived(App.hasValidApi ? nav : nav.slice(-1));
 	const groups = $derived([...new Set(items.map((i) => i.group))]);
+	// which Headscale server this panel talks to (empty API URL = same origin)
+	const server = $derived.by(() => { try { return new URL(App.apiUrl.value || page.url.origin).host; } catch { return App.apiUrl.value; } });
 </script>
 
 <Sidebar.Root collapsible="icon" variant="inset">
@@ -22,7 +24,7 @@
 							<img src="{base}/favicon.svg" alt="" class="size-8 rounded-lg dark:invert" />
 							<div class="grid flex-1 text-left text-sm leading-tight">
 								<span class="truncate font-semibold">TJNPVScale</span>
-								<span class="truncate text-xs text-muted-foreground">Headscale v{version}</span>
+								<span class="truncate text-xs text-muted-foreground" title={App.apiUrl.value || page.url.origin}>{server}</span>
 							</div>
 						</a>
 					{/snippet}
@@ -51,5 +53,8 @@
 			</Sidebar.Group>
 		{/each}
 	</Sidebar.Content>
+	<Sidebar.Footer>
+		<p class="px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">headscale-admin v{version}</p>
+	</Sidebar.Footer>
 	<Sidebar.Rail />
 </Sidebar.Root>
