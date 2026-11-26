@@ -1,7 +1,6 @@
 import House from '@lucide/svelte/icons/house';
 import Users from '@lucide/svelte/icons/users';
 import MonitorSmartphone from '@lucide/svelte/icons/monitor-smartphone';
-import Rocket from '@lucide/svelte/icons/rocket';
 import Route from '@lucide/svelte/icons/route';
 import Shield from '@lucide/svelte/icons/shield';
 import Settings from '@lucide/svelte/icons/settings';
@@ -13,7 +12,6 @@ export const nav = [
 	{ path: '/nodes', name: 'Machines', icon: MonitorSmartphone, group: 'Network', description: 'Manage the devices connected to your tailnet.' },
 	{ path: '/routes', name: 'Routes', icon: Route, group: 'Network', description: 'Subnet and exit-node routes advertised by machines.' },
 	{ path: '/acls', name: 'ACLs', icon: Shield, group: 'Network', description: 'Build the tailnet ACL policy. Changes are local until you save.' },
-	{ path: '/deploy', name: 'Deploy', icon: Rocket, group: 'Tools', description: 'Build a tailscale up command for a new device.' },
 	{ path: '/users', name: 'Users', icon: Users, group: 'Tools', description: 'People and namespaces that own machines.' },
 	{ path: '/settings', name: 'Settings', icon: Settings, group: 'Tools', description: 'Connect to your Headscale API. Stored only in this browser.' },
 ];

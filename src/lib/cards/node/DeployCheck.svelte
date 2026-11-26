@@ -11,7 +11,7 @@
 	const id = $derived('checkbox-' + name.toLowerCase().replace(/\W+/g, '-'));
 </script>
 
-<div class="col-span-12 flex flex-col pb-4 md:col-span-6 xl:col-span-4">
+<div class="col-span-12 flex flex-col pb-4 sm:col-span-6">
 	<div class="flex items-center gap-2">
 		{#if help}
 			<Tooltip.Provider>

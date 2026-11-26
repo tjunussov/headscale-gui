@@ -13,9 +13,10 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
   - Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
   - Header: trigger | separator | `group › page` breadcrumb. PageHeader (design A): row 1 = title `text-2xl font-semibold` + `text-sm` description (from `nav.ts`) | Create (+ icon) right; create form slides below; row 2 = children (SortFilterBar tabs) left | search (InputGroup + icon) + view toggle right.
   - Design names: **A** = my earlier shadcn design (branch `shadcn`), **B** = upstream original, **C** = merged polish (branch `polish`).
-  - Sidebar: `variant="inset"`, brand block (TJNPVScale / server host), version in footer, grouped sections Overview (Home) · Network (Machines, Routes, ACLs) · Tools (Deploy, Users, Settings). Supersedes the menu rule above.
+  - Sidebar: `variant="inset"`, brand block (TJNPVScale / server host), version in footer, grouped sections Overview (Home) · Network (Machines, Routes, ACLs) · Tools (Users, Settings). Supersedes the menu rule above.
   - "Nodes" is labelled **Machines** in the UI (Tailscale wording); URL `/nodes`, API and code keep "node".
   - Machines page borrows from Tailscale: table (Machine/owner/pills · Addresses ▾ · Last Seen · ⋮), `MachineMenu`, `MachineIp`, Exit Node/Subnet pills (`machinePills`), CSV export, search over name/owner/tag/IP.
+  - **Add machine** dialog (`AddDeviceDialog`): OS picker + tabs Download / Connect / Register / Advanced. Advanced = `DeployBuilder` (the former Deploy page, with `DeployCheck`). `/nodes/?add[=tab]` opens it; Deploy is no longer a menu item.
   - **Machine page** `src/routes/nodes/[id]/` (`/nodes/<ipv4 or id>/`, link via `machineHref`): not prerendered; served by the SPA fallback `200.html` (adapter-static `fallback`). Any web server must fall back to `<ENDPOINT>/200.html` for unknown paths (Caddyfile does). Tiles, table, Home recent, user machine list and the ⋮ menu open it; the drawer is now only for users.
 - Run the original side by side to compare: `git worktree add <dir> upstream/main`, `npm ci`, add a vite `/api` proxy to the mock, `npx vite dev --port 5174`.
 
@@ -31,7 +32,7 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
 ```
 src/app.css                      theme tokens (shadcn CSS vars) — the only global CSS
 src/routes/+layout.svelte        Sidebar.Provider shell, Toaster, ModeWatcher, PageDrawer, polling bootstrap
-src/routes/{,users,nodes,routes,deploy,acls,settings}/+page.svelte
+src/routes/{,users,nodes,routes,acls,settings}/+page.svelte   (deploy/ only redirects to /nodes/?add=advanced)
 src/routes/acls/{Groups,TagOwners,Hosts,Policies,SshRules,Config}.svelte   ACL tabs
 src/lib/nav.ts                   menu items (Settings must stay last: shown alone without a valid API key)
 src/lib/components/app-sidebar.svelte, site-header.svelte

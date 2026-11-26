@@ -16,14 +16,14 @@
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import NodeCreate from './NodeCreate.svelte';
+	import DeployBuilder from './DeployBuilder.svelte';
+	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
 	import { copyToClipboard } from '$lib/common/funcs';
 	import { App } from '$lib/States.svelte';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
 
-	let { open = $bindable(false) }: { open: boolean } = $props();
+	let { open = $bindable(false), tab = $bindable('download') }: { open: boolean; tab?: string } = $props();
 	let os = $state('macos');
-	let tab = $state('download');
 	// NodeCreate sets show=false after a successful register → close the dialog
 	let formShown = $state(true);
 	$effect(() => { if (!formShown) { open = false; formShown = true; } });
@@ -54,7 +54,7 @@
 
 <Dialog.Root bind:open>
 	<!-- no auto-focus: it put a focus ring on the first OS button, which read as a second selection -->
-	<Dialog.Content class="sm:max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
+	<Dialog.Content class="max-h-[90svh] overflow-y-auto sm:max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
 		<Dialog.Header>
 			<Dialog.Title>Add machine</Dialog.Title>
 			<Dialog.Description>
@@ -75,6 +75,7 @@
 				<Tabs.Trigger value="download"><Download />Download</Tabs.Trigger>
 				<Tabs.Trigger value="connect"><Plug />Connect</Tabs.Trigger>
 				<Tabs.Trigger value="register"><KeyRound />Register</Tabs.Trigger>
+				<Tabs.Trigger value="advanced"><SlidersHorizontal />Advanced</Tabs.Trigger>
 			</Tabs.List>
 
 			<Tabs.Content value="download" class="grid gap-2">
@@ -88,7 +89,7 @@
 					<ol class="list-decimal space-y-1 pl-5 text-sm">{#each sel.steps as step}<li>{step}</li>{/each}</ol>
 				{:else}
 					{@render copyField(cli)}
-					<p class="text-sm text-muted-foreground">Run on the device. For tags, routes, exit node or a pre-auth key use <a class="underline underline-offset-4" href="{base}/deploy/" onclick={() => (open = false)}>Deploy</a>.</p>
+					<p class="text-sm text-muted-foreground">Run on the device. For tags, routes, exit node or a pre-auth key use <button class="underline underline-offset-4" onclick={() => (tab = 'advanced')}>Advanced</button>.</p>
 				{/if}
 				<p class="text-sm text-muted-foreground">The login page then shows a registration key; register it in the next tab (not needed when using a pre-auth key).</p>
 			</Tabs.Content>
@@ -96,6 +97,11 @@
 			<Tabs.Content value="register" class="grid gap-2">
 				<p class="text-sm text-muted-foreground">Paste the key from the device's login page (<span class="font-mono">mkey:…</span> or the key in the <span class="font-mono">headscale nodes register</span> command) and choose its owner.</p>
 				<NodeCreate bind:show={formShown} />
+			</Tabs.Content>
+
+			<!-- former Deploy page: full tailscale up options + pre-auth key (no manual register needed) -->
+			<Tabs.Content value="advanced">
+				<DeployBuilder />
 			</Tabs.Content>
 		</Tabs.Root>
 	</Dialog.Content>

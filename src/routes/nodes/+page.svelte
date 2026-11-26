@@ -18,11 +18,14 @@
 	import MachineIp from '$lib/parts/MachineIp.svelte';
 	import { getSortedFilteredNodes, onlineCounts, lastSeenText, machinePills, machineHref } from '$lib/common/funcs';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { base } from '$app/paths';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
-	let showCreate = $state(false);
+	// ?add[=tab] opens Add machine (e.g. old /deploy/ links → ?add=advanced)
+	let showCreate = $state(page.url.searchParams.has("add"));
+	let addTab = $state(page.url.searchParams.get("add") || "download");
 	let sortMethod = $state('id');
 	let sortDirection = $state<Direction>('up');
 	let filterOnlineStatus = $state<OnlineStatus>('all');
@@ -62,7 +65,7 @@
 
 <Page>
 	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} buttonText="Add machine" bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
-		{#snippet button()}<AddDeviceDialog bind:open={showCreate} />{/snippet}
+		{#snippet button()}<AddDeviceDialog bind:open={showCreate} bind:tab={addTab} />{/snippet}
 		{#snippet tools()}<Button variant="outline" size="icon" onclick={exportCsv} aria-label="Export CSV" title="Export shown machines as CSV"><Download /></Button>{/snippet}
 		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 	</PageHeader>
