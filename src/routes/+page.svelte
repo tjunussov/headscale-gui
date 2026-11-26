@@ -35,15 +35,15 @@
 
 <Page>
 	<PageHeader title="Home" />
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs dark:*:data-[slot=card]:bg-card">
+	<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs dark:*:data-[slot=card]:bg-card">
 		{#each summaries as s (s.title)}
-			<Card.Root class="@container/card relative transition-colors hover:border-foreground/25">
+			<Card.Root class="@container/card relative gap-3 [--card-spacing:--spacing(4)] transition-colors hover:border-foreground/25">
 				<Card.Header>
 					<Card.Description>{s.title}</Card.Description>
-					<Card.Title class="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">{s.value}</Card.Title>
+					<Card.Title class="text-2xl font-semibold tabular-nums">{s.value}</Card.Title>
 					<Card.Action><Badge variant="outline"><s.icon />{s.badge}</Badge></Card.Action>
 				</Card.Header>
-				<Card.Footer class="flex-col items-start gap-1.5 text-sm">
+				<Card.Footer class="flex-col items-start gap-0.5 text-sm">
 					<!-- stretched link: whole card navigates, like upstream's clickable tiles -->
 					<a href="{base}{s.path}" class="line-clamp-1 font-medium after:absolute after:inset-0">{s.line}</a>
 					<div class="text-muted-foreground">{s.sub}</div>
