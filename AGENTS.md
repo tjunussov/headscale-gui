@@ -13,7 +13,8 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
   - Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
   - Header: trigger | separator | `group › page` breadcrumb. PageHeader (design A): row 1 = title `text-2xl font-semibold` + `text-sm` description (from `nav.ts`) | Create (+ icon) right; create form slides below; row 2 = children (SortFilterBar tabs) left | search (InputGroup + icon) + view toggle right.
   - Design names: **A** = my earlier shadcn design (branch `shadcn`), **B** = upstream original, **C** = merged polish (branch `polish`).
-  - Sidebar: `variant="inset"`, brand block (TJNPVScale / Headscale vX), grouped sections Overview (Home) · Network (Users, Nodes, Routes, ACLs) · Tools (Deploy, Settings). **Labels stay upstream's**; only grouping/order/icons changed (this supersedes the menu-order rule above).
+  - Sidebar: `variant="inset"`, brand block (TJNPVScale / server host), version in footer, grouped sections Overview (Home) · Network (Machines, Routes, ACLs) · Tools (Deploy, Users, Settings). Supersedes the menu rule above.
+  - "Nodes" is labelled **Machines** in the UI (Tailscale wording); URL `/nodes`, API and code keep "node".
 - Run the original side by side to compare: `git worktree add <dir> upstream/main`, `npm ci`, add a vite `/api` proxy to the mock, `npx vite dev --port 5174`.
 
 ## Stack
