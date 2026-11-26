@@ -56,7 +56,7 @@
 	<!-- repo link + version, bottom center; collapsed sidebar keeps just the icon -->
 	<Sidebar.Footer class="items-center">
 		<a
-			href="https://github.com/tjunussov/tjnpvscale"
+			href="https://github.com/tjunussov/headscale-gui"
 			target="_blank"
 			rel="noreferrer"
 			title="headscale-gui on GitHub"

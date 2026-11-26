@@ -1,4 +1,4 @@
-# TJNPVScale
+# headscale-gui (Headscale VPN)
 
 Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) rebuilt on [shadcn-svelte](https://www.shadcn-svelte.com) (Svelte 5 + Tailwind v4), following the shadcn dashboard patterns.
 
@@ -6,7 +6,7 @@ Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale):
 npm install && npm run dev:mock     # UI + mock Headscale → http://localhost:5173
 npm run dev                         # UI only (set API URL/key in Settings)
 ENDPOINT=/admin npm run build       # static build -> ./build
-git fetch upstream && git merge upstream/main   # pull upstream fixes
+git fetch upstream --tags         # upstream releases are tags (v0.28.0…), see AGENTS.md
 ```
 
 UI: shadcn-svelte components in `src/lib/components/ui` (add more with `npx shadcn-svelte@latest add <name>`), theme tokens in `src/app.css`, app shell in `src/lib/components/app-sidebar.svelte` / `site-header.svelte`, nav in `src/lib/nav.ts`.

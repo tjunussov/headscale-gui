@@ -1,8 +1,8 @@
-# TJNPVScale — Agent Context
+# headscale-gui (Headscale VPN) — Agent Context
 
 Web admin panel for [Headscale](https://github.com/juanfont/headscale) (self-hosted Tailscale control server).
 Fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) (GPL-3.0 — keep license + upstream credit).
-Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` = GoodiesHQ.
+Repo: `github.com/tjunussov/headscale-gui` · remotes: `origin` = fork, `upstream` = GoodiesHQ.
 
 ## Product rule (current phase)
 
@@ -13,7 +13,7 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
   - Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
   - Header: trigger | separator | `group › page` breadcrumb. PageHeader (design A): row 1 = title `text-2xl font-semibold` + `text-sm` description (from `nav.ts`) | Create (+ icon) right; create form slides below; row 2 = children (SortFilterBar tabs) left | search (InputGroup + icon) + view toggle right.
   - Design names: **A** = my earlier shadcn design (branch `shadcn`), **B** = upstream original, **C** = merged polish (branch `polish`).
-  - Sidebar: `variant="inset"`, brand block (TJNPVScale / server host), version in footer, grouped sections Overview (Home) · Network (Machines, Routes, ACLs) · Tools (Users, Settings). Supersedes the menu rule above.
+  - Sidebar: `variant="inset"`, brand block (Headscale VPN / server host), version in footer, grouped sections Overview (Home) · Network (Machines, Routes, ACLs) · Tools (Users, Settings). Supersedes the menu rule above.
   - "Nodes" is labelled **Machines** in the UI (Tailscale wording); URL `/nodes`, API and code keep "node".
   - Machines page borrows from Tailscale: table (Machine/owner/pills · Addresses ▾ · Last Seen · ⋮), `MachineMenu`, `MachineIp`, Exit Node/Subnet pills (`machinePills`), CSV export, search over name/owner/tag/IP.
   - **Add machine** dialog (`AddDeviceDialog`): OS picker + tabs Download / Connect / Register / Advanced. Advanced = `DeployBuilder` (the former Deploy page, with `DeployCheck`). `/nodes/?add[=tab]` opens it; Deploy is no longer a menu item.
@@ -60,7 +60,7 @@ npm run dev           # UI only; HEADSCALE=http://host:8080 npm run dev to proxy
 npm run test:mock     # mock self-test
 npx svelte-check --tsconfig ./tsconfig.json   # type check — must be 0 errors
 npm run build         # static build → ./build ; ENDPOINT=/admin for sub-path
-docker build -t tjnpvscale .                  # Caddy image, served at /admin by default
+docker build -t headscale-gui .                  # Caddy image, served at /admin by default
 ```
 Mock knobs: `MOCK_DELAY=600` (slow responses), `MOCK_FLAP=1` (nodes flip online/offline). Mock accepts any bearer token — test auth against a real Headscale.
 
