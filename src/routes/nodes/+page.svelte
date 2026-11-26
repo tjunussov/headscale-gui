@@ -61,7 +61,7 @@
 {/snippet}
 
 <Page>
-	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} buttonText="Add device" bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
+	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} buttonText="Add machine" bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
 		{#snippet button()}<AddDeviceDialog bind:open={showCreate} />{/snippet}
 		{#snippet tools()}<Button variant="outline" size="icon" onclick={exportCsv} aria-label="Export CSV" title="Export shown machines as CSV"><Download /></Button>{/snippet}
 		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />

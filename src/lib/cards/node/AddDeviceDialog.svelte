@@ -56,9 +56,9 @@
 	<!-- no auto-focus: it put a focus ring on the first OS button, which read as a second selection -->
 	<Dialog.Content class="sm:max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
 		<Dialog.Header>
-			<Dialog.Title>Add device</Dialog.Title>
+			<Dialog.Title>Add machine</Dialog.Title>
 			<Dialog.Description>
-				To add a device, install Tailscale on it and log in to this Headscale server: <span class="font-mono font-medium text-foreground">{server}</span>
+				To add a machine, install Tailscale on it and log in to this Headscale server: <span class="font-mono font-medium text-foreground">{server}</span>
 			</Dialog.Description>
 		</Dialog.Header>
 
