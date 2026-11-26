@@ -1,38 +1,86 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import { base } from '$app/paths';
+	import { isExpired, getSortedNodes, lastSeenText, machineHref } from '$lib/common/funcs';
 	import { goto } from '$app/navigation';
-	import { isExpired } from '$lib/common/funcs';
+	import * as Table from '$lib/components/ui/table/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
 	import { App } from '$lib/States.svelte';
-	import User from '@lucide/svelte/icons/user';
+	import Users from '@lucide/svelte/icons/users';
+	import UserCheck from '@lucide/svelte/icons/user-check';
 	import MonitorSmartphone from '@lucide/svelte/icons/monitor-smartphone';
+	import Wifi from '@lucide/svelte/icons/wifi';
 	import KeyRound from '@lucide/svelte/icons/key-round';
-	import Router from '@lucide/svelte/icons/router';
+	import Route from '@lucide/svelte/icons/route';
 
-	// same six summaries as upstream
+	const nodes = $derived(App.nodes.value);
+	const users = $derived(App.users.value);
+	const online = $derived(nodes.filter((n) => n.online));
+	const usersOnline = $derived(users.filter((u) => online.some((n) => n.user.id === u.id)));
+	const keys = $derived(App.preAuthKeys.value.filter((p) => !isExpired(p.expiration) && !(p.used && !p.reusable)));
+	const routes = $derived(nodes.reduce((a, n) => a + (n.availableRoutes?.length ?? 0), 0));
+	const pending = $derived(nodes.reduce((a, n) => a + (n.availableRoutes ?? []).filter((r) => !n.approvedRoutes.includes(r)).length, 0));
+	const recent = $derived(getSortedNodes(nodes, 'lastseen', 'down').slice(0, 6));
+	const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
+
+	// upstream's six summaries, in upstream order, styled as shadcn section cards
 	const summaries = $derived([
-		{ title: 'Total Users', icon: User, path: '/users', value: App.users.value.length },
-		{ title: 'Online Users', icon: User, path: '/users', value: App.users.value.filter((u) => App.nodes.value.some((n) => n.online && n.user.id === u.id)).length },
-		{ title: 'Valid PreAuth Keys', icon: KeyRound, path: '/users', value: App.preAuthKeys.value.filter((p) => !isExpired(p.expiration) && !(p.used && !p.reusable)).length },
-		{ title: 'Total Nodes', icon: MonitorSmartphone, path: '/nodes', value: App.nodes.value.length },
-		{ title: 'Online Nodes', icon: MonitorSmartphone, path: '/nodes', value: App.nodes.value.filter((n) => n.online).length },
-		{ title: 'Total Routes', icon: Router, path: '/routes', value: App.nodes.value.reduce((a, n) => a + (n.availableRoutes?.length ?? 0), 0) },
+		{ title: 'Total Users', path: '/users', value: users.length, icon: Users, badge: `${usersOnline.length} active`, line: `${users.filter((u) => nodes.some((n) => n.user.id === u.id)).length} own machines`, sub: 'In the tailnet' },
+		{ title: 'Online Users', path: '/users', value: usersOnline.length, icon: UserCheck, badge: `${pct(usersOnline.length, users.length)}%`, line: `${usersOnline.length} of ${users.length} online`, sub: 'With a node online' },
+		{ title: 'Valid PreAuth Keys', path: '/users', value: keys.length, icon: KeyRound, badge: `${keys.filter((k) => k.reusable).length} reusable`, line: 'Unused, unexpired', sub: 'For new devices' },
+		{ title: 'Total Machines', path: '/nodes', value: nodes.length, icon: MonitorSmartphone, badge: `${pct(online.length, nodes.length)}% online`, line: `${nodes.length - online.length} offline`, sub: 'Registered to the tailnet' },
+		{ title: 'Online Machines', path: '/nodes', value: online.length, icon: Wifi, badge: `${online.length}/${nodes.length}`, line: `${online.length} online now`, sub: 'Connected devices' },
+		{ title: 'Total Routes', path: '/routes', value: routes, icon: Route, badge: `${pending} pending`, line: pending ? `${pending} to approve` : 'All approved', sub: 'Subnet & exit routes' },
 	]);
 </script>
 
 <Page>
 	<PageHeader title="Home" />
-	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+	<!-- one row; scrolls sideways (snapping per card) when the screen is too narrow for six -->
+	<div class="flex snap-x gap-3 overflow-x-auto p-px pb-2 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs dark:*:data-[slot=card]:bg-card">
 		{#each summaries as s (s.title)}
-			<Card.Root class="cursor-pointer transition-colors hover:border-foreground/25" role="button" tabindex={0} onclick={() => goto(base + s.path)} onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && goto(base + s.path)}>
+			<Card.Root class="@container/card relative min-w-44 flex-1 snap-start gap-3 [--card-spacing:--spacing(4)] transition-colors hover:border-foreground/25">
 				<Card.Header>
-					<Card.Description>{s.title}</Card.Description>
-					<Card.Title class="text-3xl font-semibold tabular-nums">{s.value}</Card.Title>
-					<Card.Action><s.icon class="size-4 text-muted-foreground" /></Card.Action>
+					<Card.Description class="truncate">{s.title}</Card.Description>
+					<div class="flex items-center justify-between gap-2">
+						<Card.Title class="text-2xl font-semibold tabular-nums">{s.value}</Card.Title>
+						<Badge variant="outline"><s.icon />{s.badge}</Badge>
+					</div>
 				</Card.Header>
+				<Card.Footer class="flex-col items-start gap-0.5 text-sm">
+					<!-- stretched link: whole card navigates, like upstream's clickable tiles -->
+					<a href="{base}{s.path}" class="line-clamp-1 font-medium after:absolute after:inset-0">{s.line}</a>
+					<div class="line-clamp-1 text-muted-foreground">{s.sub}</div>
+				</Card.Footer>
 			</Card.Root>
 		{/each}
 	</div>
+
+	<Card.Root>
+		<Card.Header>
+			<Card.Title>Recently seen</Card.Title>
+			<Card.Description>Latest machine activity across all users.</Card.Description>
+			<Card.Action><Button variant="outline" size="sm" href="{base}/nodes">View all</Button></Card.Action>
+		</Card.Header>
+		<Card.Content>
+			<Table.Root>
+				<Table.Body>
+					{#each recent as node (node.id)}
+						<Table.Row class="cursor-pointer" onclick={() => goto(base + machineHref(node))}>
+							<Table.Cell class="w-6"><OnlineNodeIndicator {node} /></Table.Cell>
+							<Table.Cell class="font-medium">{node.givenName}</Table.Cell>
+							<Table.Cell class="text-muted-foreground">{node.user.name}</Table.Cell>
+							<Table.Cell class="text-right text-muted-foreground">{lastSeenText(node)}</Table.Cell>
+						</Table.Row>
+					{:else}
+						<Table.Row><Table.Cell class="h-16 text-center text-muted-foreground">No machines yet.</Table.Cell></Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
+		</Card.Content>
+	</Card.Root>
 </Page>

@@ -1,18 +1,17 @@
 import House from '@lucide/svelte/icons/house';
-import User from '@lucide/svelte/icons/user';
+import Users from '@lucide/svelte/icons/users';
 import MonitorSmartphone from '@lucide/svelte/icons/monitor-smartphone';
-import HousePlus from '@lucide/svelte/icons/house-plus';
-import Router from '@lucide/svelte/icons/router';
+import Route from '@lucide/svelte/icons/route';
 import Shield from '@lucide/svelte/icons/shield';
 import Settings from '@lucide/svelte/icons/settings';
 
-// Same items/order as upstream headscale-admin. Settings must stay last: without a valid API key only it is shown.
+// Upstream headscale-admin labels, grouped (sidebar sections + header breadcrumb).
+// Settings must stay last: without a valid API key only it is shown.
 export const nav = [
-	{ path: '/', name: 'Home', icon: House },
-	{ path: '/users', name: 'Users', icon: User },
-	{ path: '/nodes', name: 'Nodes', icon: MonitorSmartphone },
-	{ path: '/deploy', name: 'Deploy', icon: HousePlus },
-	{ path: '/routes', name: 'Routes', icon: Router },
-	{ path: '/acls', name: 'ACLs', icon: Shield },
-	{ path: '/settings', name: 'Settings', icon: Settings },
+	{ path: '/', name: 'Home', icon: House, group: 'Overview', description: 'Overview of your Headscale tailnet.' },
+	{ path: '/nodes', name: 'Machines', icon: MonitorSmartphone, group: 'Network', description: 'Manage the devices connected to your tailnet.' },
+	{ path: '/routes', name: 'Routes', icon: Route, group: 'Network', description: 'Subnet and exit-node routes advertised by machines.' },
+	{ path: '/acls', name: 'ACLs', icon: Shield, group: 'Network', description: 'Build the tailnet ACL policy. Changes are local until you save.' },
+	{ path: '/users', name: 'Users', icon: Users, group: 'Tools', description: 'People and namespaces that own machines.' },
+	{ path: '/settings', name: 'Settings', icon: Settings, group: 'Tools', description: 'Connect to your Headscale API. Stored only in this browser.' },
 ];

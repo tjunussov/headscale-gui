@@ -337,17 +337,8 @@ export function filterNode(node: Node, filterString: string, onlineStatus: Onlin
 
 	try {
 		const r = RegExp(filterString);
-		const getTag = (tag: string) => {
-			if (tag.startsWith('tag:')) {
-				return tag.substring(0, 4);
-			}
-			return tag;
-		};
-		return (
-			r.test(node.name) ||
-			r.test(node.givenName) ||
-			node.tags.map(getTag).some((tag) => r.test(tag))
-		);
+		// name, hostname, owner, tag (without "tag:"; upstream compared only the prefix), any IP
+		return [node.name, node.givenName, node.user.name, ...node.tags.map((t) => t.replace(/^tag:/, '')), ...node.ipAddresses].some((s) => r.test(s));
 	} catch (err) {
 		return true;
 	}
@@ -388,3 +379,18 @@ export function getSortedFilteredNodes(
 	return nodesSortedFiltered
 }
 export const lastSeenText = (n: Node) => (n.online ? 'Online now' : n.lastSeen && new Date(n.lastSeen).getFullYear() > 1970 ? getTimeDifferenceMessage(getTime(n.lastSeen)) : 'Never');
+
+// counts for the All/Online/Offline filter tabs
+export const onlineCounts = <T>(items: T[], isOnline: (i: T) => boolean): Record<OnlineStatus, number> => {
+	const online = items.filter(isOnline).length;
+	return { all: items.length, online, offline: items.length - online };
+};
+
+// Tailscale-style status pills from advertised routes; pending = some not approved yet
+const EXIT_ROUTES = ['0.0.0.0/0', '::/0'];
+export function machinePills(n: Node) {
+	const exit = n.availableRoutes.filter((r) => EXIT_ROUTES.includes(r)), subnet = n.availableRoutes.filter((r) => !EXIT_ROUTES.includes(r));
+	const pill = (label: string, rs: string[]) => ({ label, pending: rs.some((r) => !n.approvedRoutes.includes(r)), title: `${rs.filter((r) => n.approvedRoutes.includes(r)).length}/${rs.length} approved: ${rs.join(', ')}` });
+	return [...(exit.length ? [pill('Exit Node', exit)] : []), ...(subnet.length ? [pill('Subnet', subnet)] : [])];
+}
+export const machineHref = (n: Node) => `/nodes/${n.ipAddresses.find((s) => !s.includes(':')) ?? n.id}/`;

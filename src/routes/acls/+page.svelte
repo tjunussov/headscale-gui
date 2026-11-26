@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 	import JWCC from 'json5';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import Users from '@lucide/svelte/icons/users';
@@ -25,7 +26,8 @@
 
 	let acl = $state(ACLBuilder.defaultACL());
 	let loading = $state(false);
-	let tab = $state('groups');
+	let tab = $state(uiLoad('acls', { tab: 'groups' }).tab);
+	$effect(() => uiSave('acls', { tab }));
 
 	// same tabs/order as upstream
 	const tabs = [

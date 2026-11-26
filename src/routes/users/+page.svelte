@@ -10,15 +10,18 @@
 	import UserCreate from '$lib/cards/user/UserCreate.svelte';
 	import UserInfo from '$lib/cards/user/UserInfo.svelte';
 	import OnlineUserIndicator from '$lib/parts/OnlineUserIndicator.svelte';
-	import { getSortedFilteredUsers, openDrawer, dateToStr } from '$lib/common/funcs';
+	import { getSortedFilteredUsers, onlineCounts, openDrawer, dateToStr } from '$lib/common/funcs';
 	import { getUserDisplay, type Direction, type OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
+	import { uiLoad, uiSave } from '$lib/common/ui';
 
 	let showCreate = $state(false);
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
+	const saved = uiLoad('users', { sortMethod: 'id', sortDirection: 'up' as Direction, filterOnlineStatus: 'all' as OnlineStatus, filterString: '' });
+	let sortMethod = $state(saved.sortMethod);
+	let sortDirection = $state<Direction>(saved.sortDirection);
+	let filterOnlineStatus = $state<OnlineStatus>(saved.filterOnlineStatus);
+	let filterString = $state(saved.filterString);
+	$effect(() => uiSave('users', { sortMethod, sortDirection, filterOnlineStatus, filterString }));
 
 	const users = $derived(getSortedFilteredUsers(App.users.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const nodeCount = (id: string) => App.nodes.value.filter((n) => n.user.id === id).length;
@@ -27,9 +30,8 @@
 <Page>
 	<PageHeader title="Users" layout={App.layoutUser} bind:show={showCreate} bind:filterString>
 		{#snippet button()}<UserCreate bind:show={showCreate} />{/snippet}
+		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.users.value, (u) => App.nodes.value.some((n) => n.online && n.user.id === u.id))} />
 	</PageHeader>
-
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} />
 
 	{#if App.layoutUser.value === 'list'}
 		<CardListPage>
@@ -46,7 +48,7 @@
 				<CardTile id={user.id} label={getUserDisplay(user)} onclick={() => openDrawer('userDrawer-' + user.id, user)}>
 					{#snippet lead()}<OnlineUserIndicator {user} />{/snippet}
 					<CardTileEntry title="Created:">{dateToStr(user.createdAt)}</CardTileEntry>
-					<CardTileEntry title="Nodes:">{nodeCount(user.id)}</CardTileEntry>
+					<CardTileEntry title="Machines:">{nodeCount(user.id)}</CardTileEntry>
 				</CardTile>
 			{/each}
 		</CardTilePage>
