@@ -31,17 +31,17 @@
 	}
 </script>
 
-<CardListEntry top title="Forced tags">
+<CardListEntry top title="Tags:">
 	<div class="w-64"><TagInput bind:value={tagsForced} {disabled} placeholder="Add tag…" onchange={saveTags} /></div>
 </CardListEntry>
 <CardListEntry top>
 	{#snippet childTitle()}
 		<span class="flex items-center gap-1.5">
-			Advertised tags
+			Advertised Tags:
 			{#if tagsInvalid.length}
 				<Tooltip.Provider>
 					<Tooltip.Root>
-						<Tooltip.Trigger><TriangleAlert class="size-4 text-amber-500" /></Tooltip.Trigger>
+						<Tooltip.Trigger><TriangleAlert class="size-4 text-muted-foreground" /></Tooltip.Trigger>
 						<Tooltip.Content>Blocked by current ACL: {tagsInvalid.join(', ')}</Tooltip.Content>
 					</Tooltip.Root>
 				</Tooltip.Provider>

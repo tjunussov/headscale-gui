@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AclToolbar from '$lib/parts/AclToolbar.svelte';
-	import { type ACLBuilder } from '$lib/common/acl.svelte';
+	import { saveConfig, type ACLBuilder } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastError, toastSuccess } from '$lib/common/funcs';
 	import GroupListCard from '$lib/cards/acl/GroupListCard.svelte';
@@ -53,7 +53,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-<AclToolbar bind:filter={groupsFilterString} placeholder="Filter groups…" label="New group" onclick={toggleShowCreateGroup}>
+<AclToolbar bind:filter={groupsFilterString} placeholder="Filter Groups..." label="Create Group" onclick={toggleShowCreateGroup} {loading} save={() => saveConfig(acl, { setLoadingTrue: () => (loading = true), setLoadingFalse: () => (loading = false) })}>
 	{#if showCreateGroup}<NewItem title="Group" disabled={loading} bind:name={newGroupName} submit={newGroup} />{/if}
 </AclToolbar>
 <div class="flex flex-col gap-3">

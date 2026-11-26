@@ -5,7 +5,7 @@
 	import { openDrawer } from '$lib/common/funcs';
 	import { App } from '$lib/States.svelte';
 
-	let { user = $bindable(), title = 'Nodes' }: { user: User; title?: string } = $props();
+	let { user = $bindable(), title = 'Nodes:' }: { user: User; title?: string } = $props();
 	const nodes = $derived(App.nodes.value.filter((n) => n.user.id == user.id));
 </script>
 

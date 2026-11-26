@@ -20,8 +20,9 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { userPrefersMode, setMode, resetMode } from 'mode-watcher';
 	import Save from '@lucide/svelte/icons/save';
 	import RotateCw from '@lucide/svelte/icons/rotate-cw';
 	import Eye from '@lucide/svelte/icons/eye';
@@ -92,69 +93,70 @@
 </script>
 
 <Page>
-	<PageHeader title="Settings" description="Connect TJNPVScale to your Headscale API. Stored only in this browser." />
-	<form onsubmit={saveSettings} class="grid max-w-3xl gap-6">
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>API connection</Card.Title>
-				<Card.Description>Create a key with <code class="font-mono">headscale apikeys create</code>.</Card.Description>
-				{#if apiKeyInfo.authorized !== null}
-					<Card.Action>
-						<Badge variant={apiKeyInfo.authorized ? 'secondary' : 'destructive'} class="gap-1.5">
-							<span class="size-2 rounded-full {apiKeyInfo.authorized ? 'bg-emerald-500' : 'bg-white'}"></span>
-							{apiKeyInfo.authorized ? 'Authorized' : 'Not authorized'}
-						</Badge>
-					</Card.Action>
-				{/if}
-			</Card.Header>
-			<Card.Content class="grid gap-6">
+	<PageHeader title="Settings" />
+	<Card.Root class="max-w-3xl">
+		<Card.Content>
+			<form onsubmit={saveSettings} class="grid gap-6">
 				<div class="grid gap-2">
 					<Label for="api-url">API URL</Label>
 					<Input id="api-url" placeholder={page.url.origin} disabled={loading} bind:value={settings.apiUrl} />
 				</div>
+
 				<div class="grid gap-2">
-					<Label for="api-key">API key</Label>
+					<Label for="api-key">API Key</Label>
 					<InputGroup.Root>
-						<InputGroup.Input id="api-key" class="font-mono" type={apiKeyShow ? 'text' : 'password'} placeholder="Enter your API key" disabled={loading} bind:value={settings.apiKey} />
+						<InputGroup.Input id="api-key" type={apiKeyShow ? 'text' : 'password'} placeholder="Enter your API Key" disabled={loading} bind:value={settings.apiKey} />
 						<InputGroup.Addon align="inline-end">
-							<InputGroup.Button size="icon-xs" disabled={loading} onclick={() => (apiKeyShow = !apiKeyShow)} aria-label={apiKeyShow ? 'Hide API key' : 'Show API key'}>
+							<InputGroup.Button size="icon-xs" disabled={loading} onclick={() => (apiKeyShow = !apiKeyShow)} aria-label={apiKeyShow ? 'Hide API Key' : 'Show API Key'}>
 								{#if apiKeyShow}<EyeOff />{:else}<Eye />{/if}
 							</InputGroup.Button>
 							<InputGroup.Button
 								size="icon-xs"
 								disabled={loading}
-								aria-label="Rotate API key"
+								aria-label="Refresh API Key"
 								onclick={async () => { loading = true; try { await refreshApiKey(); settings.apiKey = App.apiKey.value; saveSettings(); } finally { loading = false; } }}
 							><RotateCw /></InputGroup.Button>
 						</InputGroup.Addon>
 					</InputGroup.Root>
-					<p class="text-sm text-muted-foreground">
-						{#if loading}Checking authorization…{:else if apiKeyInfo.authorized && apiKeyExpirationMessage.message}Expires {apiKeyExpirationMessage.message}{:else}&nbsp;{/if}
-					</p>
+					{#if apiKeyInfo.authorized !== null}
+						<p class="text-sm">
+							<span class={apiKeyInfo.authorized ? 'font-medium' : 'text-destructive'}>{apiKeyInfo.authorized ? 'Authorized' : 'Not Authorized'}</span>
+							{#if apiKeyInfo.authorized && apiKeyExpirationMessage}<span class="ml-2 text-muted-foreground">Expires in: {apiKeyExpirationMessage.message}</span>{/if}
+						</p>
+					{:else if loading}
+						<p class="text-sm text-muted-foreground">Checking authorization...</p>
+					{/if}
 				</div>
+
 				<div class="grid gap-2">
-					<Label for="api-ttl">Refresh interval (seconds)</Label>
+					<Label for="api-ttl">API Refresh Interval (seconds)</Label>
 					<Input id="api-ttl" class="w-32" type="number" min="1" disabled={loading} bind:value={settings.apiTtl} />
 				</div>
-			</Card.Content>
-			<Card.Footer class="justify-end border-t">
-				<Button type="submit" disabled={loading || !settings.apiKey}><Save />Save settings</Button>
-			</Card.Footer>
-		</Card.Root>
 
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>Developer</Card.Title>
-				<Card.Description>Debug output goes to the browser console.</Card.Description>
-			</Card.Header>
-			<Card.Content class="grid gap-4">
-				<Label class="font-normal"><Switch bind:checked={settings.debug} disabled={loading} />Console debugging</Label>
-				<div class="flex flex-wrap gap-2">
-					{#each [['Users', App.users.value], ['Nodes', App.nodes.value], ['PreAuth keys', App.preAuthKeys.value], ['API key info', App.apiKeyInfo.value]] as [name, data]}
-						<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(data, null, 4))}>Log {name}</Button>
-					{/each}
+				<Label class="font-normal"><Checkbox id="debugging" disabled={loading} bind:checked={settings.debug} />Console Debugging</Label>
+
+				<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.users.value, null, 4))}>Log Users</Button>
+					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.nodes.value, null, 4))}>Log Nodes</Button>
+					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.preAuthKeys.value, null, 4))}>Log PreAuthKeys</Button>
+					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.apiKeyInfo.value, null, 4))}>Log ApiKey Info</Button>
 				</div>
-			</Card.Content>
-		</Card.Root>
-	</form>
+
+				<div class="grid gap-2">
+					<Label>Theme</Label>
+					<!-- upstream picked a Skeleton theme; monochrome build keeps the slot for light/dark/system -->
+					<Select.Root type="single" value={userPrefersMode.current} onValueChange={(v) => (v === 'system' ? resetMode() : setMode(v as 'light' | 'dark'))}>
+						<Select.Trigger class="w-48 capitalize">{userPrefersMode.current}</Select.Trigger>
+						<Select.Content>
+							{#each ['light', 'dark', 'system'] as m}<Select.Item value={m} label={m} class="capitalize">{m}</Select.Item>{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+
+				<div class="flex justify-end">
+					<Button type="submit" disabled={loading || !settings.apiKey}><Save />Save Settings</Button>
+				</div>
+			</form>
+		</Card.Content>
+	</Card.Root>
 </Page>

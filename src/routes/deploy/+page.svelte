@@ -8,14 +8,13 @@
 		toastSuccess,
 	} from '$lib/common/funcs';
 	import DeployCheck from './DeployCheck.svelte';
+	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import type { Deployment, PreAuthKey } from '$lib/common/types';
-	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import TagInput from '$lib/parts/TagInput.svelte';
-	import Copy from '@lucide/svelte/icons/copy';
 	import { page } from '$app/state';
 
 	import { App } from '$lib/States.svelte';
@@ -65,87 +64,69 @@
 	};
 </script>
 
-	<PageHeader title="Deploy" description="Build a tailscale up command for a new device.">
-		{#snippet actions()}
-			<Button variant="outline" size="sm" onclick={() => { App.saveDeploymentDefaults(deployment); toastSuccess('Saved Deployment Defaults'); }}>Save as defaults</Button>
-		{/snippet}
-	</PageHeader>
+<Page>
+	<PageHeader title="Deploy" />
 
-	<Card.Root class="sticky top-2 z-10">
-		<Card.Header>
-			<Card.Title>Command</Card.Title>
-			<Card.Description>Run on the device you want to join.</Card.Description>
-			<Card.Action><Button size="sm" onclick={() => copyToClipboard(craftCommand(deployment), 'Copied Command to Clipboard!')}><Copy />Copy</Button></Card.Action>
-		</Card.Header>
-		<Card.Content>
-			<pre class="overflow-x-auto rounded-md bg-muted p-3 font-mono text-sm whitespace-pre-wrap break-all">{craftCommand(deployment)}</pre>
-		</Card.Content>
-	</Card.Root>
+	<button
+		class="w-full rounded-lg border border-dashed bg-muted/50 px-4 py-4 text-left transition-colors hover:bg-muted"
+		onclick={() => copyToClipboard(craftCommand(deployment), 'Copied Command to Clipboard!')}
+	>
+		<code class="block font-mono text-sm break-all">{craftCommand(deployment)}</code>
+	</button>
 
-	{#snippet section(title: string, desc: string, body: import('svelte').Snippet)}
-		<Card.Root>
-			<Card.Header><Card.Title>{title}</Card.Title><Card.Description>{desc}</Card.Description></Card.Header>
-			<Card.Content class="divide-y">{@render body()}</Card.Content>
-		</Card.Root>
-	{/snippet}
-
-	<div class="grid gap-4 @4xl/main:grid-cols-2 @4xl/main:items-start">
-		{#snippet general()}
-			<DeployCheck bind:checked={deployment.shieldsUp} name="Shields up" help="Block incoming connections" />
-			<DeployCheck bind:checked={deployment.generateQR} name="Generate QR code" help="Show a QR code to scan into the Tailscale client" />
-			<DeployCheck bind:checked={deployment.reset} name="Reset" help="Reset unspecified settings to default values" />
-			<DeployCheck bind:checked={deployment.operator} name="Operator" help="(Unix only) Run as a different user">
-				<Input placeholder="username" bind:value={deployment.operatorValue} />
-			</DeployCheck>
-			<DeployCheck bind:checked={deployment.forceReauth} name="Force reauthentication" help="Force the user to re-authenticate to Headscale" />
-			<DeployCheck bind:checked={deployment.sshServer} name="SSH server" help="Run Tailscale SSH, accessible by administrators" />
-			<DeployCheck bind:checked={deployment.usePreAuthKey} name="PreAuth key" help="Authenticate the node automatically for a user">
-				<div class="flex flex-col gap-2">
-					<Select.Root type="single" bind:value={deployment.preAuthKeyUser} onValueChange={() => (deployment.preAuthKey = '')}>
-						<Select.Trigger class="w-full">{App.users.value.find((u) => u.id === deployment.preAuthKeyUser)?.name ?? 'Select user…'}</Select.Trigger>
-						<Select.Content>{#each App.users.value as u (u.id)}<Select.Item value={u.id} label={u.name}>{u.name}</Select.Item>{/each}</Select.Content>
+	<div class="grid grid-cols-12">
+		<p class="col-span-12 pb-4 text-lg font-semibold">General:</p>
+		<DeployCheck bind:checked={deployment.shieldsUp} name="Shields Up" help="Block incoming connections" />
+		<DeployCheck bind:checked={deployment.generateQR} name="Generate QR Code" help="Create a scannable QR code to import into TailScale client" />
+		<DeployCheck bind:checked={deployment.reset} name="Reset" help="Reset unspecified settings to default values" />
+		<DeployCheck bind:checked={deployment.operator} name="Operator" help="(Unix Only) Run as a different user">
+			<Input bind:value={deployment.operatorValue} />
+		</DeployCheck>
+		<DeployCheck bind:checked={deployment.forceReauth} name="Force Reauthentication" help="Force user to re-authenticate to Headscale server" />
+		<DeployCheck bind:checked={deployment.sshServer} name="SSH Server" help="Run a local SSH server accessible by administrators" />
+		<DeployCheck bind:checked={deployment.usePreAuthKey} name="PreAuth Key" help="A generated key to automatically authenticate the node for a given user">
+			<div class="flex flex-col gap-2">
+				<Select.Root type="single" bind:value={deployment.preAuthKeyUser} onValueChange={() => (deployment.preAuthKey = '')}>
+					<Select.Trigger class="w-full">{App.users.value.find((u) => u.id === deployment.preAuthKeyUser)?.name ?? ''}</Select.Trigger>
+					<Select.Content>{#each App.users.value as u (u.id)}<Select.Item value={u.id} label={u.name}>{u.name}</Select.Item>{/each}</Select.Content>
+				</Select.Root>
+				{#if deployment.preAuthKeyUser}
+					{@const keys = App.preAuthKeys.value.filter(createFilter(deployment.preAuthKeyUser))}
+					<Select.Root type="single" bind:value={deployment.preAuthKey}>
+						<Select.Trigger class="w-full font-mono">{deployment.preAuthKey || `${keys.length} Valid Key(s)`}</Select.Trigger>
+						<Select.Content>{#each keys as k (k.key)}<Select.Item value={k.key} label={k.key} class="font-mono">{k.key}</Select.Item>{/each}</Select.Content>
 					</Select.Root>
-					{#if deployment.preAuthKeyUser}
-						{@const keys = App.preAuthKeys.value.filter(createFilter(deployment.preAuthKeyUser))}
-						<Select.Root type="single" bind:value={deployment.preAuthKey}>
-							<Select.Trigger class="w-full font-mono">{deployment.preAuthKey || `${keys.length} valid key(s)`}</Select.Trigger>
-							<Select.Content>{#each keys as k (k.key)}<Select.Item value={k.key} label={k.key} class="font-mono">{k.key}</Select.Item>{/each}</Select.Content>
-						</Select.Root>
-					{/if}
-				</div>
-			</DeployCheck>
-			<DeployCheck bind:checked={deployment.unattended} name="Unattended" help="Run the client in unattended mode (on startup)" />
-			<DeployCheck bind:checked={deployment.advertiseExitNodeLocalAccess} name="Allow LAN access" help="Keep local network access while using an exit node" />
-		{/snippet}
-		{@render section('General', 'Client behaviour and authentication.', general)}
+				{/if}
+			</div>
+		</DeployCheck>
+		<DeployCheck bind:checked={deployment.unattended} name="Unattended" help="Run the tailscale client in unattended mode (on startup)" />
+		<DeployCheck bind:checked={deployment.advertiseExitNodeLocalAccess} name="Allow LAN Access" help="Allow local network access while connected to the TailNet and using an exit node" />
 
-		<div class="grid gap-4">
-			{#snippet advertise()}
-				<DeployCheck bind:checked={deployment.advertiseExitNode} name="Advertise exit node" help="Let other nodes use this node as a gateway" />
-				<DeployCheck bind:checked={deployment.advertiseTags} name="Advertise tags" help="Tags to apply to the machine on provisioning">
-					<TagInput placeholder="tag name, Enter" bind:value={deployment.advertiseTagsValues} onchange={(v) => { const bad = v.filter((t) => !isValidTag(t)); if (bad.length) { toastError('Tag should be a lowercase alphanumeric word'); deployment.advertiseTagsValues = v.filter(isValidTag); } }} />
-				</DeployCheck>
-				<DeployCheck bind:checked={deployment.advertiseRoutes} name="Advertise routes" help="Subnets reachable via this node">
-					<TagInput placeholder="10.0.0.0/24, Enter" bind:value={deployment.advertiseRoutesValues} onchange={(v) => { const bad = v.filter((t) => !isValidCIDR(t)); if (bad.length) { toastError('Invalid CIDR Format'); deployment.advertiseRoutesValues = v.filter(isValidCIDR); } }} />
-				</DeployCheck>
-			{/snippet}
-			{@render section('Advertise', 'What this node offers to the tailnet.', advertise)}
+		<p class="col-span-12 py-4 text-lg font-semibold">Advertise:</p>
+		<DeployCheck bind:checked={deployment.advertiseExitNode} name="Advertise Exit Node" help="Allow other nodes on the TailNet to use this node as a gateway" />
+		<DeployCheck bind:checked={deployment.advertiseTags} name="Advertise Tags" help="List of advertised tags to apply to a machine on provisioning">
+			<TagInput bind:value={deployment.advertiseTagsValues} onchange={(v) => { if (v.some((t) => !isValidTag(t))) { toastError('Tag should be a lowercase alphanumeric word'); deployment.advertiseTagsValues = v.filter(isValidTag); } }} />
+		</DeployCheck>
+		<DeployCheck bind:checked={deployment.advertiseRoutes} name="Advertise Routes" help="List of subnets which are reachable via this node">
+			<TagInput bind:value={deployment.advertiseRoutesValues} onchange={(v) => { if (v.some((t) => !isValidCIDR(t))) { toastError('Invalid CIDR Format'); deployment.advertiseRoutesValues = v.filter(isValidCIDR); } }} />
+		</DeployCheck>
 
-			{#snippet accept()}
-				<DeployCheck bind:checked={deployment.acceptDns} name="Accept DNS" help="Use the Headscale-provided DNS settings" />
-				<DeployCheck bind:checked={deployment.acceptRoutes} name="Accept routes" help="Accept subnets advertised by other nodes" />
-				<DeployCheck bind:checked={deployment.acceptExitNode} name="Exit node" help="Route traffic through another node (it must advertise exit node)">
-					<Select.Root type="single" bind:value={deployment.acceptExitNodeValue}>
-						<Select.Trigger class="w-full">{App.nodes.value.find((n) => n.ipAddresses.includes(deployment.acceptExitNodeValue))?.givenName ?? 'Select node…'}</Select.Trigger>
-						<Select.Content>
-							{#each App.nodes.value as n (n.id)}
-								{@const ip = n.ipAddresses.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ''}
-								<Select.Item value={ip} label={n.givenName}>{n.givenName} <span class="text-muted-foreground">{ip}</span></Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-				</DeployCheck>
-			{/snippet}
-			{@render section('Accept', 'What this node takes from the tailnet.', accept)}
-		</div>
+		<p class="col-span-12 py-4 text-lg font-semibold">Accept:</p>
+		<DeployCheck bind:checked={deployment.acceptDns} name="Accept DNS" help="Accept the HeadScale-provided DNS settings" />
+		<DeployCheck bind:checked={deployment.acceptRoutes} name="Accept Routes" help="Accept other nodes' advertised subnets" />
+		<DeployCheck bind:checked={deployment.acceptExitNode} name="Exit Node" help="Use this node as a gateway (target node must advertise exit node)">
+			<Select.Root type="single" bind:value={deployment.acceptExitNodeValue}>
+				<Select.Trigger class="w-full">{App.nodes.value.find((n) => n.ipAddresses.includes(deployment.acceptExitNodeValue))?.givenName ?? ''}</Select.Trigger>
+				<Select.Content>
+					{#each App.nodes.value as n (n.id)}
+						{@const ip = n.ipAddresses.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ''}
+						<Select.Item value={ip} label={n.givenName}>{n.givenName} ({n.name})</Select.Item>
+					{/each}
+				</Select.Content>
+			</Select.Root>
+		</DeployCheck>
 	</div>
+	<div>
+		<Button variant="secondary" onclick={() => { App.saveDeploymentDefaults(deployment); toastSuccess('Saved Deployment Defaults'); }}>Save Defaults</Button>
+	</div>
+</Page>

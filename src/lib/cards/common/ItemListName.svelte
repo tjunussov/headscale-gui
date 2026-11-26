@@ -34,7 +34,7 @@
 	}
 </script>
 
-<CardListEntry title="Name">
+<CardListEntry title="Name:">
 	{#if allowed}
 		<Text value={item.givenName ?? item.name} bind:valueNew={newName} showRenameIcon submit={() => (rename(), true)} />
 	{:else}

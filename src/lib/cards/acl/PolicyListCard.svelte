@@ -37,7 +37,7 @@
 
 	let name = $state(acl.getPolicy(idx)['#ha-meta']?.name ?? '');
 	function setName(n: string) {
-		policy.policy['#ha-meta'] ??= HAMetaDefault;
+		policy.policy['#ha-meta'] ??= { ...HAMetaDefault };
 		policy.policy['#ha-meta'].name = n;
 	}
 
@@ -73,34 +73,30 @@
 	</div>
 	<div class="min-w-0 flex-1">
 		<ListEntry name={ACLBuilder.getPolicyTitle(policy.policy, idx)} logo={Shield} bind:open={opener.open}>
-			{#snippet meta()}
-				<Badge variant="outline" class="font-mono uppercase">{policy.proto ?? 'any'}</Badge>
-				<span class="hidden text-xs text-muted-foreground sm:inline">{policy.src.length} → {policy.dst.length}</span>
-			{/snippet}
 			<div class="grid gap-6">
 				<div class="grid gap-4 sm:grid-cols-2">
 					<div class="grid gap-2">
-						<Label for="policy-name-{idx}">Name</Label>
-						<Input id="policy-name-{idx}" bind:value={name} oninput={() => setName(name)} autocomplete="off" placeholder="Optional label" />
+						<Label for="policy-name-{idx}">Name:</Label>
+						<Input id="policy-name-{idx}" bind:value={name} oninput={() => setName(name)} autocomplete="off"  />
 					</div>
 					<div class="grid gap-2">
-						<Label>Protocol</Label>
+						<Label>Protocol:</Label>
 						<ToggleGroup.Root type="single" variant="outline" value={policy.proto ?? 'any'} onValueChange={(v) => (policy.proto = !v || v === 'any' ? undefined : v)}>
-							{#each ['any', 'tcp', 'udp', 'icmp'] as p}<ToggleGroup.Item value={p} class="uppercase">{p}</ToggleGroup.Item>{/each}
+							{#each [['any', 'Any'], ['tcp', 'TCP'], ['udp', 'UDP'], ['icmp', 'ICMP']] as [p, l]}<ToggleGroup.Item value={p}>{l}</ToggleGroup.Item>{/each}
 						</ToggleGroup.Root>
 					</div>
 				</div>
 				<div class="grid gap-2">
-					<Label>Sources</Label>
-					<ObjectPicker options={objects} add={addSrc} />
+					<Label>Sources:</Label>
+					<ObjectPicker options={objects} placeholder="Src Object..." add={addSrc} />
 					<ObjectList items={policy.src} remove={(i) => policy.src.splice(i, 1)} />
 				</div>
 				<div class="grid gap-2">
-					<Label>Destinations</Label>
-					<ObjectPicker options={objects} ports portsDisabled={policy.proto === 'icmp'} add={addDst} />
+					<Label>Destinations:</Label>
+					<ObjectPicker options={objects} placeholder="Dst Object..." ports portsDisabled={policy.proto === 'icmp'} add={addDst} />
 					<ObjectList items={policy.dst} remove={(i) => policy.dst.splice(i, 1)} render={(d) => [ACLBuilder.getPolicyDstHost(d), ACLBuilder.getPolicyDstPorts(d)]} />
 				</div>
-				<Delete func={deletePolicy} label="Delete policy" />
+				<Delete func={deletePolicy} />
 			</div>
 		</ListEntry>
 	</div>
