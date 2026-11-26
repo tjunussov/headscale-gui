@@ -20,11 +20,11 @@
 		try {
 			const n = await createNode(nodekey, username);
 			App.nodes.value.push(n);
-			toastSuccess('Created node "' + n.name + '"');
+			toastSuccess('Added machine "' + n.givenName + '"');
 			show = false;
 			username = '';
 		} catch (error) {
-			if (error instanceof Error) { debug(error); toastError('Failed to create node', error); }
+			if (error instanceof Error) { debug(error); toastError('Failed to register machine', error); }
 		} finally {
 			loading = false;
 		}
@@ -39,5 +39,5 @@
 			{#each App.users.value as user (user.id)}<Select.Item value={user.name} label={user.name}>{user.name} (ID: {user.id})</Select.Item>{/each}
 		</Select.Content>
 	</Select.Root>
-	<Button type="submit" size="icon" variant="outline" disabled={loading} aria-label="Create node"><Check /></Button>
+	<Button type="submit" size="icon" variant="outline" disabled={loading} aria-label="Register machine"><Check /></Button>
 </form>

@@ -4,7 +4,7 @@
 	import SortFilterBar from '$lib/parts/SortFilterBar.svelte';
 	import CardListPage from '$lib/cards/CardListPage.svelte';
 	import CardListItem from '$lib/cards/CardListItem.svelte';
-	import NodeCreate from '$lib/cards/node/NodeCreate.svelte';
+	import AddDeviceDialog from '$lib/cards/node/AddDeviceDialog.svelte';
 	import NodeInfo from '$lib/cards/node/NodeInfo.svelte';
 	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
@@ -61,8 +61,8 @@
 {/snippet}
 
 <Page>
-	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
-		{#snippet button()}<NodeCreate bind:show={showCreate} />{/snippet}
+	<PageHeader title="Machines" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} buttonText="Add device" bind:filterString searchPlaceholder="Search name, owner, tag, IP… (regex)">
+		{#snippet button()}<AddDeviceDialog bind:open={showCreate} />{/snippet}
 		{#snippet tools()}<Button variant="outline" size="icon" onclick={exportCsv} aria-label="Export CSV" title="Export shown machines as CSV"><Download /></Button>{/snippet}
 		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 	</PageHeader>
