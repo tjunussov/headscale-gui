@@ -47,9 +47,8 @@
 <Page>
 	<PageHeader title="Nodes" layout={App.layoutNode} layouts={['tile', 'list', 'table']} bind:show={showCreate} bind:filterString>
 		{#snippet button()}<NodeCreate bind:show={showCreate} />{/snippet}
+		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 	</PageHeader>
-
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name', 'Last Seen']} counts={onlineCounts(App.nodes.value, (n) => n.online)} />
 
 	{#if App.layoutNode.value === 'list'}
 		<CardListPage>

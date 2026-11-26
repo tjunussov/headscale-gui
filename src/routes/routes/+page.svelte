@@ -21,9 +21,9 @@
 </script>
 
 <Page>
-	<PageHeader title="Routes" layout={App.layoutRoute} bind:filterString />
-
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.nodes.value.filter((n) => n.availableRoutes.length), (n) => n.online)} />
+	<PageHeader title="Routes" layout={App.layoutRoute} bind:filterString>
+		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.nodes.value.filter((n) => n.availableRoutes.length), (n) => n.online)} />
+	</PageHeader>
 
 	{#if App.layoutRoute.value === 'list'}
 		<!-- upstream: route items open by default -->

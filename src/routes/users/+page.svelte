@@ -27,9 +27,8 @@
 <Page>
 	<PageHeader title="Users" layout={App.layoutUser} bind:show={showCreate} bind:filterString>
 		{#snippet button()}<UserCreate bind:show={showCreate} />{/snippet}
+		<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.users.value, (u) => App.nodes.value.some((n) => n.online && n.user.id === u.id))} />
 	</PageHeader>
-
-	<SortFilterBar bind:sortMethod bind:sortDirection bind:filterOnlineStatus sorts={['ID', 'Name']} counts={onlineCounts(App.users.value, (u) => App.nodes.value.some((n) => n.online && n.user.id === u.id))} />
 
 	{#if App.layoutUser.value === 'list'}
 		<CardListPage>
