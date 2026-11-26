@@ -6,7 +6,8 @@
 	import X from '@lucide/svelte/icons/x';
 	import { slide } from 'svelte/transition';
 
-	let { func, show = false, disabled = false }: { func: () => void | Promise<void>; show?: boolean; disabled?: boolean; label?: string } = $props();
+	import type { Component } from 'svelte';
+	let { func, show = false, disabled = false, logo: Logo = Trash }: { func: () => void | Promise<void>; show?: boolean; disabled?: boolean; label?: string; logo?: Component } = $props();
 	let busy = $state(false);
 </script>
 
@@ -23,5 +24,5 @@
 			<Button size="icon-sm" variant="ghost" disabled={busy} aria-label="Cancel" onclick={() => (show = false)}><X /></Button>
 		</span>
 	{/if}
-	<Button size="icon-sm" variant="ghost" class="text-destructive" {disabled} aria-label="Delete" onclick={() => (show = !show)}><Trash /></Button>
+	<Button size="icon-sm" variant="ghost" class="text-destructive" {disabled} aria-label="Delete" onclick={() => (show = !show)}><Logo /></Button>
 </div>

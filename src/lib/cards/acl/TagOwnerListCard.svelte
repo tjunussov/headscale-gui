@@ -32,7 +32,7 @@
 	let loading = $state(false);
 	let deleting = $state(false);
 	const options = $derived.by(() => {
-		const us = App.users.value.map(u => u.name)
+		const us = App.usersAcl.map((u) => u.name)
 		us.sort()
 
 		const gs = acl.getGroupNames(true)

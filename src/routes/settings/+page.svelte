@@ -133,10 +133,20 @@
 					<Input id="api-ttl" class="w-32" type="number" min="1" disabled={loading} bind:value={settings.apiTtl} />
 				</div>
 
+				<div class="grid gap-2">
+					<Label>ACL Database Status:</Label>
+					<p class="text-sm">
+						{#if App.apiHealth.value === null}<span class="text-muted-foreground">Unknown</span>
+						{:else if App.apiHealth.value.databaseConnectivity}<span class="font-medium">Healthy</span>
+						{:else}<span class="text-destructive">Unhealthy</span>{/if}
+					</p>
+				</div>
+
 				<Label class="font-normal"><Checkbox id="debugging" disabled={loading} bind:checked={settings.debug} />Console Debugging</Label>
 
-				<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+				<div class="grid grid-cols-2 gap-2 md:grid-cols-5">
 					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.users.value, null, 4))}>Log Users</Button>
+					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.usersAcl, null, 4))}>Log ACL Users</Button>
 					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.nodes.value, null, 4))}>Log Nodes</Button>
 					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.preAuthKeys.value, null, 4))}>Log PreAuthKeys</Button>
 					<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(App.apiKeyInfo.value, null, 4))}>Log ApiKey Info</Button>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CardListEntry from '../CardListEntry.svelte';
 	import Delete from '$lib/parts/Delete.svelte';
+	import TimerOff from '@lucide/svelte/icons/timer-off';
 	import type { Node } from '$lib/common/types';
 	import { getTimeDifference, getTime, getTimeDifferenceColor } from '$lib/common/funcs';
 	import { expireNode } from '$lib/common/api';
@@ -14,12 +15,11 @@
 
 	let { node, loading = $bindable(false) }: NodeExpiresAtProps = $props()
 
-	let diff = $state(getTimeDifference(getTime(node.expiry)));
+	let tick = $state(0);
+	let diff = $derived.by(() => { void tick; return getTimeDifference(getTime(node.expiry)); });
 
 	onMount(() => {
-		const interval = setInterval(() => {
-			diff = getTimeDifference(getTime(node.expiry));
-		}, 1000);
+		const interval = setInterval(() => tick++, 1000);
 
 		return () => {
 			clearInterval(interval);
@@ -34,6 +34,7 @@
 		</span>
 		<span class="items-center">
 			<Delete
+				logo={TimerOff}
 				func={async () => {
 					loading = true
 					try{

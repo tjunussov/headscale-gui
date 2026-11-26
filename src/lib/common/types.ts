@@ -142,9 +142,7 @@ export type Node = {
 	| 'REGISTER_METHOD_AUTH_KEY'
 	| 'REGISTER_METHOD_CLI'
 	| 'REGISTER_METHOD_OIDC';
-	forcedTags: string[];
-	invalidTags: string[];
-	validTags: string[];
+	tags: string[];
 	givenName: string;
 	online: boolean;
 	approvedRoutes: string[];
@@ -201,6 +199,8 @@ export type Deployment = {
 	preAuthKeyUser: string;
 	preAuthKey: string;
 	unattended: boolean;
+	customHostname: boolean;
+	customHostnameValue: string;
 	// advertise
 	advertiseExitNode: boolean;
 	advertiseExitNodeLocalAccess: boolean;
@@ -214,3 +214,7 @@ export type Deployment = {
 	acceptExitNode: boolean;
 	acceptExitNodeValue: string;
 };
+
+export type ApiHealth = {
+	databaseConnectivity: boolean;
+}

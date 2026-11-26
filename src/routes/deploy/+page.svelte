@@ -1,33 +1,39 @@
 <script lang="ts">
-	import {
-		copyToClipboard,
-		isExpired,
-		isValidCIDR,
-		isValidTag,
-		toastError,
-		toastSuccess,
-	} from '$lib/common/funcs';
+	import { copyToClipboard, isValidCIDR, isValidTag, toastError, toastSuccess } from '$lib/common/funcs';
 	import DeployCheck from './DeployCheck.svelte';
 	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
-	import type { Deployment, PreAuthKey } from '$lib/common/types';
+	import type { Deployment } from '$lib/common/types';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import Copy from '@lucide/svelte/icons/copy';
 	import TagInput from '$lib/parts/TagInput.svelte';
+	import { createPreAuthKey } from '$lib/common/api';
 	import { page } from '$app/state';
-
 	import { App } from '$lib/States.svelte';
 
-
-	function createFilter(user_id: string) {
-		return (pak: PreAuthKey) => {
-			return pak.user.id === user_id && !(pak.used && !pak.reusable) && !isExpired(pak.expiration);
-		};
-	}
-
-	// $: deployment = defaultDeployment();
 	let deployment: Deployment = $state(App.deploymentDefaults.value);
+	const defaultExpires = (h = 1) => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4 + h * 36e5).toISOString().slice(0, 16);
+	let pak = $state({ ephemeral: false, reusable: false, expiration: defaultExpires() });
+	let pakLoading = $state(false);
+
+	// 0.28: keys can only be read once, so Deploy generates a fresh one instead of listing existing keys
+	async function generatePreAuthKey() {
+		const user = App.users.value.find((u) => u.id === deployment.preAuthKeyUser);
+		if (!user) return;
+		pakLoading = true;
+		try {
+			deployment.preAuthKey = (await createPreAuthKey(user, pak.ephemeral, pak.reusable, pak.expiration)).key;
+			toastSuccess('PreAuth Key created. Copy it now, it can only be viewed once.');
+		} catch (e) {
+			toastError('Failed to create PreAuth Key: ' + e);
+		} finally {
+			pakLoading = false;
+		}
+	}
 
 	let craftCommand = (d: Deployment) => {
 		const cmd = ['tailscale up --login-server=' + (App.apiUrl.value || page.url.origin)];
@@ -36,11 +42,12 @@
 		d.shieldsUp && cmd.push('--shields-up');
 		d.generateQR && cmd.push('--qr');
 		d.reset && cmd.push('--reset');
-		d.operator && d.operatorValue != '' && cmd.push('--operator=' + d.operatorValue);
 		d.forceReauth && cmd.push('--force-reauth');
 		d.sshServer && cmd.push('--ssh');
 		d.usePreAuthKey && d.preAuthKey !== '' && cmd.push('--auth-key=' + d.preAuthKey);
-		d.unattended && cmd.push('--unattended')
+		d.unattended && cmd.push('--unattended');
+		d.operator && d.operatorValue != '' && cmd.push('--operator=' + d.operatorValue);
+		d.customHostname && d.customHostnameValue && cmd.push('--hostname=' + d.customHostnameValue);
 
 		// advertise
 		d.advertiseExitNode && cmd.push('--advertise-exit-node');
@@ -79,28 +86,42 @@
 		<DeployCheck bind:checked={deployment.shieldsUp} name="Shields Up" help="Block incoming connections" />
 		<DeployCheck bind:checked={deployment.generateQR} name="Generate QR Code" help="Create a scannable QR code to import into TailScale client" />
 		<DeployCheck bind:checked={deployment.reset} name="Reset" help="Reset unspecified settings to default values" />
+		<DeployCheck bind:checked={deployment.forceReauth} name="Force Reauthentication" help="Force user to re-authenticate to Headscale server" />
+		<DeployCheck bind:checked={deployment.sshServer} name="SSH Server" help="Run a local SSH server accessible by administrators" />
+		<DeployCheck bind:checked={deployment.unattended} name="Unattended" help="Run the tailscale client in unattended mode (on startup)" />
+		<DeployCheck bind:checked={deployment.advertiseExitNodeLocalAccess} name="Allow LAN Access" help="Allow local network access while connected to the TailNet and using an exit node" />
 		<DeployCheck bind:checked={deployment.operator} name="Operator" help="(Unix Only) Run as a different user">
 			<Input bind:value={deployment.operatorValue} />
 		</DeployCheck>
-		<DeployCheck bind:checked={deployment.forceReauth} name="Force Reauthentication" help="Force user to re-authenticate to Headscale server" />
-		<DeployCheck bind:checked={deployment.sshServer} name="SSH Server" help="Run a local SSH server accessible by administrators" />
+		<DeployCheck bind:checked={deployment.customHostname} name="Custom Hostname" help="Set a custom hostname for the node">
+			<Input bind:value={deployment.customHostnameValue} />
+		</DeployCheck>
+		<div class="col-span-12"></div>
 		<DeployCheck bind:checked={deployment.usePreAuthKey} name="PreAuth Key" help="A generated key to automatically authenticate the node for a given user">
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-3">
 				<Select.Root type="single" bind:value={deployment.preAuthKeyUser} onValueChange={() => (deployment.preAuthKey = '')}>
-					<Select.Trigger class="w-full">{App.users.value.find((u) => u.id === deployment.preAuthKeyUser)?.name ?? ''}</Select.Trigger>
+					<Select.Trigger class="w-full">{App.users.value.find((u) => u.id === deployment.preAuthKeyUser)?.name ?? 'Select user'}</Select.Trigger>
 					<Select.Content>{#each App.users.value as u (u.id)}<Select.Item value={u.id} label={u.name}>{u.name}</Select.Item>{/each}</Select.Content>
 				</Select.Root>
 				{#if deployment.preAuthKeyUser}
-					{@const keys = App.preAuthKeys.value.filter(createFilter(deployment.preAuthKeyUser))}
-					<Select.Root type="single" bind:value={deployment.preAuthKey}>
-						<Select.Trigger class="w-full font-mono">{deployment.preAuthKey || `${keys.length} Valid Key(s)`}</Select.Trigger>
-						<Select.Content>{#each keys as k (k.key)}<Select.Item value={k.key} label={k.key} class="font-mono">{k.key}</Select.Item>{/each}</Select.Content>
-					</Select.Root>
+					<div class="grid gap-3 md:grid-cols-2">
+						<div class="grid gap-2">
+							<Label for="pak-exp">Expiration</Label>
+							<Input id="pak-exp" type="datetime-local" bind:value={pak.expiration} />
+						</div>
+						<div class="grid content-end gap-2">
+							<Label class="font-normal"><Checkbox bind:checked={pak.ephemeral} />Ephemeral</Label>
+							<Label class="font-normal"><Checkbox bind:checked={pak.reusable} />Reusable</Label>
+						</div>
+					</div>
+					<div class="flex flex-wrap gap-2">
+						<Button size="sm" disabled={pakLoading} onclick={generatePreAuthKey}>Generate PreAuth Key</Button>
+						{#if deployment.preAuthKey}<Button size="sm" variant="outline" onclick={() => copyToClipboard(deployment.preAuthKey)}><Copy />Copy Key</Button>{/if}
+					</div>
+					{#if deployment.preAuthKey}<p class="text-xs text-muted-foreground">This key can only be viewed once. Copy it now.</p>{/if}
 				{/if}
 			</div>
 		</DeployCheck>
-		<DeployCheck bind:checked={deployment.unattended} name="Unattended" help="Run the tailscale client in unattended mode (on startup)" />
-		<DeployCheck bind:checked={deployment.advertiseExitNodeLocalAccess} name="Allow LAN Access" help="Allow local network access while connected to the TailNet and using an exit node" />
 
 		<p class="col-span-12 py-4 text-lg font-semibold">Advertise:</p>
 		<DeployCheck bind:checked={deployment.advertiseExitNode} name="Advertise Exit Node" help="Allow other nodes on the TailNet to use this node as a gateway" />

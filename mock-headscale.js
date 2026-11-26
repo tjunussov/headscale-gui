@@ -34,7 +34,7 @@ const mkNode = (givenName, user, o = {}) => {
 		ipAddresses: [`100.64.0.${id}`, `fd7a:115c:a1e0::${id}`], name: o.hostname ?? givenName, user,
 		lastSeen: o.online ? now() : (o.lastSeen ?? ago(60 * 26)), expiry: o.expiry ?? ZERO, preAuthKey: null,
 		createdAt: ago(60 * 24 * (20 - id)), registerMethod: o.method ?? 'REGISTER_METHOD_AUTH_KEY',
-		forcedTags: o.forcedTags ?? [], invalidTags: o.invalidTags ?? [], validTags: o.validTags ?? [],
+		tags: o.tags ?? [],
 		givenName, online: !!o.online, approvedRoutes: o.approved ?? [], availableRoutes: o.routes ?? [], subnetRoutes: [],
 	};
 	n.subnetRoutes = n.approvedRoutes.filter((r) => n.availableRoutes.includes(r));
@@ -42,7 +42,7 @@ const mkNode = (givenName, user, o = {}) => {
 	return n;
 };
 const mkPak = (user, o = {}) => {
-	const p = { user, id: String(++seq.pak), key: hex(24), reusable: !!o.reusable, ephemeral: !!o.ephemeral, used: !!o.used, expiration: o.expiration ?? inDays(1), createdAt: now(), aclTags: [] };
+	const p = { user, id: String(++seq.pak), key: 'hskey-auth-' + hex(24), reusable: !!o.reusable, ephemeral: !!o.ephemeral, used: !!o.used, expiration: o.expiration ?? inDays(1), createdAt: now(), aclTags: [] };
 	db.paks.push(p);
 	return p;
 };
@@ -58,11 +58,11 @@ function seed() {
 	const ops = mkUser('ops');
 	mkUser('guest');
 	mkNode('laptop-mbp', timur, { online: true, method: 'REGISTER_METHOD_OIDC' });
-	mkNode('nas', timur, { online: true, forcedTags: ['tag:storage'], validTags: ['tag:storage'], routes: ['192.168.1.0/24'], approved: ['192.168.1.0/24'] });
+	mkNode('nas', timur, { online: true, tags: ['tag:storage'], routes: ['192.168.1.0/24'], approved: ['192.168.1.0/24'] });
 	mkNode('phone', alice, { lastSeen: ago(12), expiry: inDays(5) });
 	mkNode('ipad', alice, { lastSeen: ago(60 * 24 * 9), expiry: ago(60) });
-	mkNode('router-gw', ops, { online: true, validTags: ['tag:router'], invalidTags: ['tag:prod'], routes: ['10.0.0.0/8', '172.16.0.0/12'], approved: ['10.0.0.0/8'] });
-	mkNode('exit-ams', ops, { online: true, forcedTags: ['tag:exit'], validTags: ['tag:exit'], routes: ['0.0.0.0/0', '::/0'] });
+	mkNode('router-gw', ops, { online: true, tags: ['tag:router'], routes: ['10.0.0.0/8', '172.16.0.0/12'], approved: ['10.0.0.0/8'] });
+	mkNode('exit-ams', ops, { online: true, tags: ['tag:exit'], routes: ['0.0.0.0/0', '::/0'] });
 	mkNode('vps-fra', ops, { lastSeen: ZERO, method: 'REGISTER_METHOD_CLI' });
 	mkPak(timur, { reusable: true });
 	mkPak(timur, { used: true });
@@ -132,7 +132,7 @@ const routes = [
 		const n = node(id);
 		const tags = b.tags ?? [];
 		if (tags.some((t) => !/^tag:[a-z0-9-_]+$/.test(t))) fail('tags must start with "tag:" and be lowercase alphanumeric');
-		n.forcedTags = tags;
+		n.tags = tags;
 		return { node: n };
 	}],
 	['POST', /^\/node\/(\d+)\/approve_routes$/, ([, id], q, b) => {
@@ -141,7 +141,10 @@ const routes = [
 		return { node: refreshNode(n) };
 	}],
 
-	['GET', /^\/preauthkey$/, (m, q) => ({ preAuthKeys: db.paks.filter((p) => p.user.id === user(q.get('user')).id) })],
+	['GET', /^\/health$/, () => ({ databaseConnectivity: true })],
+	// 0.28: no ?user lists every key; DELETE ?id= removes one
+	['GET', /^\/preauthkey$/, (m, q) => ({ preAuthKeys: q.get('user') ? db.paks.filter((p) => p.user.id === user(q.get('user')).id) : db.paks })],
+	['DELETE', /^\/preauthkey$/, (m, q) => { must(db.paks.find((p) => p.id === q.get('id')), 'preauthkey'); db.paks = db.paks.filter((p) => p.id !== q.get('id')); return {}; }],
 	['POST', /^\/preauthkey$/, (m, q, b) => ({ preAuthKey: mkPak(user(b.user), b) })],
 	['POST', /^\/preauthkey\/expire$/, (m, q, b) => { must(db.paks.find((p) => p.key === b.key), 'preauthkey').expiration = now(); return {}; }],
 
@@ -219,6 +222,11 @@ async function selftest() {
 	assert.equal((await call('POST', '/node/1/tags', { tags: ['bad tag'] }))[0], 400);
 	const [, { preAuthKey }] = await call('POST', '/preauthkey', { user: '1', reusable: true, ephemeral: false, expiration: inDays(1) });
 	assert.equal(preAuthKey.reusable, true);
+	const all = (await call('GET', '/preauthkey'))[1].preAuthKeys;
+	assert.ok(all.some((p) => p.id === preAuthKey.id), 'list without ?user returns all keys');
+	assert.equal((await call('DELETE', `/preauthkey?id=${preAuthKey.id}`))[0], 200);
+	assert.ok(!(await call('GET', '/preauthkey'))[1].preAuthKeys.some((p) => p.id === preAuthKey.id), 'key deleted');
+	assert.deepEqual((await call('GET', '/health'))[1], { databaseConnectivity: true });
 	assert.equal((await call('PUT', '/policy', { policy: '{bad' }))[0], 400);
 	assert.equal((await call('PUT', '/policy', { policy: '{"acls":[]}' }))[0], 200);
 	assert.equal((await call('GET', '/nope'))[0], 404);
