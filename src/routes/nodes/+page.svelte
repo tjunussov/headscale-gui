@@ -13,9 +13,10 @@
 	import ArrowUp from '@lucide/svelte/icons/arrow-up';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
 	import Network from '@lucide/svelte/icons/network';
-	import CalendarDays from '@lucide/svelte/icons/calendar-days';
+	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import Route from '@lucide/svelte/icons/route';
-	import { getSortedFilteredNodes, onlineCounts, openDrawer, dateToStr, lastSeenText } from '$lib/common/funcs';
+	import { getSortedFilteredNodes, onlineCounts, openDrawer, dateToStr, lastSeenText, copyToClipboard } from '$lib/common/funcs';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
@@ -28,7 +29,6 @@
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const ipv4 = (ips: string[]) => ips.find((s) => /^\d+\.\d+\.\d+\.\d+$/.test(s)) ?? ips[0] ?? '—';
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));
-	// ponytail: dateToStr gives "MM/DD/YYYY, hh:mm"; tiles show the date part only
 	const open = (n: Node) => openDrawer('nodeDrawer-' + n.id, n);
 	// table headers share the SortFilterBar state: click = sort by column, click again = flip direction
 	const sortBy = (key: string) => (sortMethod === key ? (sortDirection = sortDirection === 'up' ? 'down' : 'up') : ((sortMethod = key), (sortDirection = 'up')));
@@ -72,8 +72,20 @@
 					onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && open(node)}
 				>
 					<Card.Header class="gap-0.5">
-						<Card.Title class="truncate">{node.givenName}</Card.Title>
-						<Card.Description class="truncate text-xs">#{node.id} · {node.user.name}</Card.Description>
+						<Card.Title class="flex min-w-0 items-center gap-0.5">
+							<!-- ⋮ = node meta (id, user, created) on hover -->
+							<Tooltip.Root>
+								<Tooltip.Trigger class="-ml-1 shrink-0 rounded text-muted-foreground hover:text-foreground" onclick={(e: MouseEvent) => e.stopPropagation()} aria-label="Node info">
+									<EllipsisVertical class="size-4" />
+								</Tooltip.Trigger>
+								<Tooltip.Content side="top" align="start" class="grid gap-0.5 text-xs">
+									<span>ID: {node.id}</span>
+									<span>User: {node.user.name}</span>
+									<span>Created: {dateToStr(node.createdAt)}</span>
+								</Tooltip.Content>
+							</Tooltip.Root>
+							<span class="truncate">{node.givenName}</span>
+						</Card.Title>
 						<Card.Action class="flex flex-col items-end gap-0.5">
 							<OnlineNodeIndicator {node} label />
 							{#if !node.online}<span class="text-[11px] text-muted-foreground">{lastSeenText(node)}</span>{/if}
@@ -81,8 +93,11 @@
 					</Card.Header>
 					<!-- no labels: icon + value (title attr names the field) -->
 					<Card.Content class="flex flex-row flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground">
-						<span class="flex items-center gap-1 font-mono text-foreground" title="IPv4 address"><Network class="size-3.5 text-muted-foreground" />{ipv4(node.ipAddresses)}</span>
-						<span class="flex items-center gap-1" title="Created"><CalendarDays class="size-3.5" />{dateToStr(node.createdAt).split(',')[0]}</span>
+						<button
+							class="flex items-center gap-1.5 rounded font-mono text-sm font-medium text-foreground hover:underline"
+							title="Copy IP address"
+							onclick={(e) => { e.stopPropagation(); copyToClipboard(ipv4(node.ipAddresses), 'Copied ' + ipv4(node.ipAddresses)); }}
+						><Network class="size-3.5 text-muted-foreground" />{ipv4(node.ipAddresses)}</button>
 						{#if node.availableRoutes.length}<span class="flex items-center gap-1" title="Approved / advertised routes"><Route class="size-3.5" />{node.approvedRoutes.length}/{node.availableRoutes.length}</span>{/if}
 						{#if tags(node).length}
 							<div class="flex w-full flex-wrap gap-1">{#each tags(node) as t}<Badge variant="secondary" class="h-5 px-1.5 text-[11px]">{t}</Badge>{/each}</div>
