@@ -9,7 +9,10 @@ Repo: `github.com/tjunussov/tjnpvscale` · remotes: `origin` = fork, `upstream` 
 **Same UX as upstream, shadcn components + monochrome.** Keep upstream's structure, menu (Home, Users, Nodes, Deploy, Routes, ACLs, Settings — this order), page titles, labels (incl. trailing colons like `Name:`), flows (accordion list ⇄ tile view, inline create forms, trash → ✓/✗ confirm, per-tab ACL save) exactly. Only swap Skeleton widgets for shadcn-svelte equivalents and remove color.
 - Monochrome: neutral palette only. The single exception is `destructive` (errors, delete, expired). Status = filled `bg-foreground` dot (online) vs hollow ring (offline).
 - Don't add features/pages/labels that upstream doesn't have without asking.
-- **Polish phase (branch `polish`)**: user-approved restyles only, keeping upstream structure. Done: Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
+- **Polish phase (branch `polish`)**: user-approved restyles only, keeping upstream structure. Done:
+  - Home's six tiles use shadcn dashboard "section cards" (gradient, icon badge, footer line + sub, whole card clickable).
+  - Header: trigger | separator | `group › page` breadcrumb; page title `text-3xl font-bold` + muted description (both from `nav.ts`).
+  - Sidebar: `variant="inset"`, brand block (TJNPVScale / Headscale vX), grouped sections Overview (Home) · Network (Users, Nodes, Routes, ACLs) · Tools (Deploy, Settings). **Labels stay upstream's**; only grouping/order/icons changed (this supersedes the menu-order rule above).
 - Run the original side by side to compare: `git worktree add <dir> upstream/main`, `npm ci`, add a vite `/api` proxy to the mock, `npx vite dev --port 5174`.
 
 ## Stack
