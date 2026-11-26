@@ -8,7 +8,9 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import TimerOff from '@lucide/svelte/icons/timer-off';
 	import Trash from '@lucide/svelte/icons/trash-2';
-	import { copyToClipboard, dateToStr, openDrawer, toastError, toastSuccess } from '$lib/common/funcs';
+	import { copyToClipboard, dateToStr, machineHref, toastError, toastSuccess } from '$lib/common/funcs';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { deleteNode, expireNode } from '$lib/common/api';
 	import { App } from '$lib/States.svelte';
 	import type { Node } from '$lib/common/types';
@@ -40,7 +42,7 @@
 	<DropdownMenu.Content align="start" class="w-56" onclick={(e: MouseEvent) => e.stopPropagation()}>
 		<DropdownMenu.Label class="text-xs font-normal text-muted-foreground">ID {node.id} · {node.user.name} · created {dateToStr(node.createdAt).split(',')[0]}</DropdownMenu.Label>
 		<DropdownMenu.Separator />
-		<DropdownMenu.Item onSelect={() => openDrawer('nodeDrawer-' + node.id, node)}><PanelRight />Details…</DropdownMenu.Item>
+		<DropdownMenu.Item onSelect={() => goto(base + machineHref(node))}><PanelRight />Open machine page</DropdownMenu.Item>
 		{#if ip(false)}<DropdownMenu.Item onSelect={() => copyToClipboard(ip(false)!, 'Copied ' + ip(false))}><Copy />Copy IPv4</DropdownMenu.Item>{/if}
 		{#if ip(true)}<DropdownMenu.Item onSelect={() => copyToClipboard(ip(true)!, 'Copied IPv6')}><Copy />Copy IPv6</DropdownMenu.Item>{/if}
 		<DropdownMenu.Item onSelect={() => copyToClipboard(node.givenName, 'Copied ' + node.givenName)}><Copy />Copy name</DropdownMenu.Item>

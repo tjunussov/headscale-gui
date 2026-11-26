@@ -2,7 +2,9 @@
 	import CardListEntry from '../CardListEntry.svelte';
 	import type { User } from '$lib/common/types';
 	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
-	import { openDrawer } from '$lib/common/funcs';
+	import { machineHref } from '$lib/common/funcs';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { App } from '$lib/States.svelte';
 
 	let { user = $bindable(), title = 'Machines:' }: { user: User; title?: string } = $props();
@@ -11,7 +13,7 @@
 
 <CardListEntry {title} top>
 	{#each nodes as node (node.id)}
-		<button class="flex w-full items-center justify-end gap-2 py-0.5 underline-offset-4 hover:underline" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}>
+		<button class="flex w-full items-center justify-end gap-2 py-0.5 underline-offset-4 hover:underline" onclick={() => goto(base + machineHref(node))}>
 			{node.givenName}<span class="font-normal text-muted-foreground">{node.name}</span>
 			<OnlineNodeIndicator {node} />
 		</button>

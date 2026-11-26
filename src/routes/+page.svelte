@@ -4,7 +4,8 @@
 	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
 	import { base } from '$app/paths';
-	import { isExpired, getSortedNodes, openDrawer, lastSeenText } from '$lib/common/funcs';
+	import { isExpired, getSortedNodes, lastSeenText, machineHref } from '$lib/common/funcs';
+	import { goto } from '$app/navigation';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
@@ -69,7 +70,7 @@
 			<Table.Root>
 				<Table.Body>
 					{#each recent as node (node.id)}
-						<Table.Row class="cursor-pointer" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}>
+						<Table.Row class="cursor-pointer" onclick={() => goto(base + machineHref(node))}>
 							<Table.Cell class="w-6"><OnlineNodeIndicator {node} /></Table.Cell>
 							<Table.Cell class="font-medium">{node.givenName}</Table.Cell>
 							<Table.Cell class="text-muted-foreground">{node.user.name}</Table.Cell>

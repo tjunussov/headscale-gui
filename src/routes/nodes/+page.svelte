@@ -16,7 +16,9 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import MachineMenu from '$lib/parts/MachineMenu.svelte';
 	import MachineIp from '$lib/parts/MachineIp.svelte';
-	import { getSortedFilteredNodes, onlineCounts, openDrawer, lastSeenText } from '$lib/common/funcs';
+	import { getSortedFilteredNodes, onlineCounts, lastSeenText, machinePills, machineHref } from '$lib/common/funcs';
+	import { goto } from '$app/navigation';
+	import { base } from '$app/paths';
 	import type { Direction, Node, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
 
@@ -28,14 +30,9 @@
 
 	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus));
 	const tags = (n: Node) => [...new Set(n.tags ?? [])].map((t) => t.replace('tag:', ''));
-	const open = (n: Node) => openDrawer('nodeDrawer-' + n.id, n);
-	// Tailscale-style pills from advertised routes; dashed = some not approved yet
-	const EXIT = ['0.0.0.0/0', '::/0'];
-	const pills = (n: Node) => {
-		const exit = n.availableRoutes.filter((r) => EXIT.includes(r)), subnet = n.availableRoutes.filter((r) => !EXIT.includes(r));
-		const pill = (label: string, rs: string[]) => ({ label, pending: rs.some((r) => !n.approvedRoutes.includes(r)), title: `${rs.filter((r) => n.approvedRoutes.includes(r)).length}/${rs.length} approved: ${rs.join(', ')}` });
-		return [...(exit.length ? [pill('Exit Node', exit)] : []), ...(subnet.length ? [pill('Subnet', subnet)] : [])];
-	};
+	// machine opens its own page (Tailscale-style), e.g. /nodes/100.64.0.6/
+	const open = (n: Node) => goto(base + machineHref(n));
+	const pills = machinePills;
 	function exportCsv() {
 		const q = (v: unknown) => `"${String(v ?? '').replaceAll('"', '""')}"`;
 		const rows = nodes.map((n) => [n.id, n.givenName, n.name, n.user.name, n.ipAddresses.join(' '), n.online ? 'online' : 'offline', n.online ? '' : n.lastSeen, tags(n).join(' '), n.availableRoutes.join(' '), n.approvedRoutes.join(' '), n.createdAt]);

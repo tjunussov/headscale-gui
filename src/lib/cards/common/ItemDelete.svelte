@@ -53,6 +53,6 @@
 	}
 </script>
 
-<CardListEntry title={`Delete ${titleCase(prefix)}:`}>
+<CardListEntry title={`Delete ${prefix === 'node' ? 'Machine' : titleCase(prefix)}:`}>
 	<Delete func={deleteItem} />
 </CardListEntry>

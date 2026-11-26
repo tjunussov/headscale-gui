@@ -385,3 +385,12 @@ export const onlineCounts = <T>(items: T[], isOnline: (i: T) => boolean): Record
 	const online = items.filter(isOnline).length;
 	return { all: items.length, online, offline: items.length - online };
 };
+
+// Tailscale-style status pills from advertised routes; pending = some not approved yet
+const EXIT_ROUTES = ['0.0.0.0/0', '::/0'];
+export function machinePills(n: Node) {
+	const exit = n.availableRoutes.filter((r) => EXIT_ROUTES.includes(r)), subnet = n.availableRoutes.filter((r) => !EXIT_ROUTES.includes(r));
+	const pill = (label: string, rs: string[]) => ({ label, pending: rs.some((r) => !n.approvedRoutes.includes(r)), title: `${rs.filter((r) => n.approvedRoutes.includes(r)).length}/${rs.length} approved: ${rs.join(', ')}` });
+	return [...(exit.length ? [pill('Exit Node', exit)] : []), ...(subnet.length ? [pill('Subnet', subnet)] : [])];
+}
+export const machineHref = (n: Node) => `/nodes/${n.ipAddresses.find((s) => !s.includes(':')) ?? n.id}/`;

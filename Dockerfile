@@ -35,6 +35,8 @@ FROM caddy:latest
 ARG ENDPOINT
 ARG PORT
 ENV PORT=${PORT}
+# Caddyfile uses it for the SPA fallback ({$ENDPOINT}/200.html)
+ENV ENDPOINT=${ENDPOINT}
 
 WORKDIR /app
 

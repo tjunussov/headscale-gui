@@ -9,7 +9,11 @@
 	import { page } from '$app/state';
 	import { nav } from '$lib/nav';
 
-	const current = $derived(nav.find((n) => n.path === page.route.id));
+	import { base } from '$app/paths';
+
+	// nested routes (e.g. /nodes/[id]) resolve to their parent nav entry + a leaf crumb
+	const current = $derived(nav.find((n) => n.path === page.route.id) ?? nav.find((n) => n.path !== '/' && page.route.id?.startsWith(n.path + '/')));
+	const leaf = $derived(current && page.route.id !== current.path ? page.params.id : undefined);
 </script>
 
 <header
@@ -22,7 +26,13 @@
 			<Breadcrumb.List>
 				<Breadcrumb.Item class="hidden md:block">{current?.group ?? 'TJNPVScale'}</Breadcrumb.Item>
 				<Breadcrumb.Separator class="hidden md:block" />
-				<Breadcrumb.Item><Breadcrumb.Page>{current?.name ?? ''}</Breadcrumb.Page></Breadcrumb.Item>
+				{#if leaf}
+					<Breadcrumb.Item><Breadcrumb.Link href="{base}{current?.path}/">{current?.name}</Breadcrumb.Link></Breadcrumb.Item>
+					<Breadcrumb.Separator />
+					<Breadcrumb.Item><Breadcrumb.Page class="font-mono">{leaf}</Breadcrumb.Page></Breadcrumb.Item>
+				{:else}
+					<Breadcrumb.Item><Breadcrumb.Page>{current?.name ?? ''}</Breadcrumb.Page></Breadcrumb.Item>
+				{/if}
 			</Breadcrumb.List>
 		</Breadcrumb.Root>
 		<div class="ms-auto flex items-center gap-2">
