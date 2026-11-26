@@ -31,7 +31,7 @@
 	}));
 
 	const opener = $derived.by(() => ({
-		get open() { ACLBuilder.addPolicyMeta(policy.policy); return !!policy.policy['#ha-meta']?.open; },
+		get open() { return policy.policy['#ha-meta']?.open ?? HAMetaDefault.open; },
 		set open(o: boolean) { ACLBuilder.addPolicyMeta(policy.policy); if (policy.policy['#ha-meta']) policy.policy['#ha-meta'].open = o; },
 	}));
 

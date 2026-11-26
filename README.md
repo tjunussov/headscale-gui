@@ -3,12 +3,22 @@
 Web admin panel for [juanfont/headscale](https://github.com/juanfont/headscale): a fork of [GoodiesHQ/headscale-admin](https://github.com/GoodiesHQ/headscale-admin) rebuilt on [shadcn-svelte](https://www.shadcn-svelte.com) (Svelte 5 + Tailwind v4), following the shadcn dashboard patterns.
 
 ```bash
-npm install && npm run dev          # dev server
+npm install && npm run dev:mock     # UI + mock Headscale → http://localhost:5173
+npm run dev                         # UI only (set API URL/key in Settings)
 ENDPOINT=/admin npm run build       # static build -> ./build
 git fetch upstream && git merge upstream/main   # pull upstream fixes
 ```
 
 UI: shadcn-svelte components in `src/lib/components/ui` (add more with `npx shadcn-svelte@latest add <name>`), theme tokens in `src/app.css`, app shell in `src/lib/components/app-sidebar.svelte` / `site-header.svelte`, nav in `src/lib/nav.ts`.
+
+### Mock mode (no Headscale needed)
+
+`npm run dev:mock` starts `mock-headscale.js` (in-memory Headscale v0.26 REST API, Node stdlib only) on :8081 and Vite with `/api` proxied to it. In **Settings** leave *API URL* empty, type any *API key* (e.g. `mock-key`), save. Data is seeded (users incl. OIDC, online/offline nodes, routes, tags, preauth keys, ACL policy) and resets on restart.
+
+- `MOCK_DELAY=600 npm run dev:mock` — slow responses, to check loading states
+- `MOCK_FLAP=1 npm run dev:mock` — nodes randomly go online/offline every 5s
+- `npm run test:mock` — mock self-test
+- Point at a real server instead: `HEADSCALE=http://host:8080 npm run dev`
 
 ---
 
