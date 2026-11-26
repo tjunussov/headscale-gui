@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AclToolbar from '$lib/parts/AclToolbar.svelte';
-	import { type ACLBuilder } from '$lib/common/acl.svelte';
+	import { saveConfig, type ACLBuilder } from '$lib/common/acl.svelte';
 	import { toastError, toastSuccess } from '$lib/common/funcs';
 	
 	import NewItem from '$lib/parts/NewItem.svelte';
@@ -58,7 +58,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-<AclToolbar bind:filter={hostsFilter} placeholder="Filter hosts…" label="New host" onclick={toggleShowCreateHost}>
+<AclToolbar bind:filter={hostsFilter} placeholder="Filter Hosts..." label="Create Host" onclick={toggleShowCreateHost} {loading} save={() => saveConfig(acl, { setLoadingTrue: () => (loading = true), setLoadingFalse: () => (loading = false) })}>
 	{#if showCreateHost}<NewItem title="Host" disabled={loading} bind:name={newHostName} bind:value={newHostCIDR} submit={() => newHost()} />{/if}
 </AclToolbar>
 <div class="divide-y rounded-lg border">

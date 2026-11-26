@@ -16,14 +16,16 @@
 {#if options === undefined}
 	<TagInput value={items} {placeholder} onchange={(v) => { v.filter((x) => !items.includes(x)).forEach((x) => items.push(x)); items.filter((x) => !v.includes(x)).forEach(onItemClick); }} />
 {:else}
-	<div class="flex flex-wrap items-center gap-1.5">
-		{#each items as item (item)}
-			<Badge variant="secondary" class="gap-1 pr-1">
-				{item}<button class="rounded-sm opacity-60 hover:opacity-100" onclick={() => onItemClick(item)} aria-label="Remove {item}"><X class="size-3" /></button>
-			</Badge>
-		{/each}
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-wrap gap-1.5">
+			{#each items as item (item)}
+				<Badge variant="secondary" class="gap-1 pr-1">
+					{item}<button class="rounded-sm opacity-60 hover:opacity-100" onclick={() => onItemClick(item)} aria-label="Remove {item}"><X class="size-3" /></button>
+				</Badge>
+			{/each}
+		</div>
 		<Popover.Root bind:open>
-			<Popover.Trigger>{#snippet child({ props })}<Button variant="outline" size="xs" {...props}><Plus />Add</Button>{/snippet}</Popover.Trigger>
+			<Popover.Trigger>{#snippet child({ props })}<Button variant="outline" class="w-full justify-start font-normal text-muted-foreground" {...props}><Plus />{placeholder}</Button>{/snippet}</Popover.Trigger>
 			<Popover.Content class="w-64 p-0" align="start">
 				<Command.Root>
 					<Command.Input {placeholder} />

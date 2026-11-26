@@ -19,7 +19,7 @@
 <div class="py-3 text-sm">
 	<div class={cn('flex justify-between gap-4', top ? 'items-start' : 'items-center')}>
 		<div class={cn('shrink-0 text-muted-foreground', titleClasses)}>
-			{#if title !== undefined}{title.replace(/:$/, '')}{:else}{@render childTitle?.()}{/if}
+			{#if title !== undefined}{title}{:else}{@render childTitle?.()}{/if}
 		</div>
 		<div class={cn('min-w-0 text-right font-medium', valueClasses)}>
 			{#if value !== undefined}{value}{:else}{@render children?.()}{/if}

@@ -9,4 +9,4 @@
 	onMount(() => { const i = setInterval(() => tick++, 1000); return () => clearInterval(i); });
 </script>
 
-<CardListEntry title="Last seen">{#key tick}{lastSeenText(node)}{/key}</CardListEntry>
+<CardListEntry title="Last Seen:">{#key tick}{lastSeenText(node)}{/key}</CardListEntry>

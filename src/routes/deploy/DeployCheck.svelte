@@ -1,20 +1,28 @@
 <script lang="ts">
-	import { Switch } from '$lib/components/ui/switch/index.js';
+	// upstream: [info] [checkbox] Name; children shown when checked
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import Info from '@lucide/svelte/icons/info';
 	import { slide } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
 
 	let { name, help, checked = $bindable(), children }: { name: string; help?: string; checked: boolean; children?: Snippet } = $props();
-	const id = 'deploy-' + name.toLowerCase().replace(/\W+/g, '-');
+	const id = $derived('checkbox-' + name.toLowerCase().replace(/\W+/g, '-'));
 </script>
 
-<div class="flex flex-col gap-3 py-3">
-	<div class="flex items-start justify-between gap-4">
-		<div class="grid gap-1">
-			<Label for={id}>{name}</Label>
-			{#if help}<p class="text-sm text-muted-foreground">{help}</p>{/if}
-		</div>
-		<Switch {id} bind:checked />
+<div class="col-span-12 flex flex-col pb-4 md:col-span-6 xl:col-span-4">
+	<div class="flex items-center gap-2">
+		{#if help}
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger class="text-muted-foreground hover:text-foreground"><Info class="size-4" /></Tooltip.Trigger>
+					<Tooltip.Content>{help}</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
+		{/if}
+		<Checkbox {id} bind:checked />
+		<Label for={id} class="font-normal">{name}</Label>
 	</div>
-	{#if children && checked}<div transition:slide>{@render children()}</div>{/if}
+	{#if children && checked}<div transition:slide class="pt-3 pr-4">{@render children()}</div>{/if}
 </div>

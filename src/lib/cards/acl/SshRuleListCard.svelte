@@ -33,22 +33,21 @@
 </script>
 
 <ListEntry name={'SSH Rule #' + (idx + 1)} logo={Terminal} bind:open>
-	{#snippet meta()}<Badge variant="outline">{rule.action}</Badge>{/snippet}
 	<div class="grid gap-6">
 		<div class="grid gap-2">
-			<Label>Sources</Label>
-			<ObjectPicker options={{ custom: undefined, user: userNames, group: acl.getGroupNames(true), tag: tags }} add={push(rule.src)} />
+			<Label>Sources:</Label>
+			<ObjectPicker options={{ custom: undefined, user: userNames, group: acl.getGroupNames(true), tag: tags }} placeholder="Src Object..." add={push(rule.src)} />
 			<ObjectList items={rule.src} remove={(i) => rule.src.splice(i, 1)} />
 		</div>
 		<div class="grid gap-2">
-			<Label>Destinations</Label>
-			<ObjectPicker options={{ custom: undefined, user: userNames, tag: tags }} add={push(rule.dst)} />
+			<Label>Destinations:</Label>
+			<ObjectPicker options={{ custom: undefined, user: userNames, tag: tags }} placeholder="Dst Object..." add={push(rule.dst)} />
 			<ObjectList items={rule.dst} remove={(i) => rule.dst.splice(i, 1)} />
 		</div>
 		<div class="grid gap-2">
-			<Label>SSH usernames</Label>
-			<MultiSelect bind:items={rule.users} placeholder="root, autogroup:nonroot…" onItemClick={(u) => (rule.users = rule.users.filter((x) => x != u))} />
+			<Label>Usernames:</Label>
+			<MultiSelect bind:items={rule.users} onItemClick={(u) => (rule.users = rule.users.filter((x) => x != u))} />
 		</div>
-		<Delete func={deleteSshRule} label="Delete rule" />
+		<Delete func={deleteSshRule} />
 	</div>
 </ListEntry>

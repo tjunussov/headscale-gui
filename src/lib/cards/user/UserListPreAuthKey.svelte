@@ -14,30 +14,25 @@
 	let expired = $state(isExpired());
 	onMount(() => { const i = setInterval(() => (expired = isExpired()), 1000); return () => clearInterval(i); });
 
-	const flags = $derived([
-		['Used', preAuthKey.used],
-		['Expired', expired],
-		['Ephemeral', preAuthKey.ephemeral],
-		['Reusable', preAuthKey.reusable],
-	] as const);
+	// upstream shows all four flags, dimmed when off
+	const flags = $derived([['Used', preAuthKey.used], ['Expired', expired], ['Ephemeral', preAuthKey.ephemeral], ['Reusable', preAuthKey.reusable]] as const);
 </script>
 
-<div class="flex flex-wrap items-center justify-between gap-2 py-2">
-	<Button variant="outline" size="sm" class="font-mono" onclick={() => copyToClipboard(preAuthKey.key)}>
-		<Copy />{preAuthKey.key.substring(0, 12)}…
-	</Button>
-	<div class="flex flex-wrap items-center gap-1">
-		{#each flags.filter(([, on]) => on) as [name]}
-			<Badge variant={name === 'Expired' ? 'destructive' : 'secondary'}>{name}</Badge>
+<div class="flex flex-row items-start gap-3 py-2">
+	<div class="flex flex-col gap-2">
+		<Button variant="outline" size="sm" class="font-mono" onclick={() => copyToClipboard(preAuthKey.key)}><Copy />{preAuthKey.key.substring(0, 8)}</Button>
+		{#if !expired}
+			<Delete
+				func={async () => {
+					await expirePreAuthKey(preAuthKey);
+					(await getPreAuthKeys([preAuthKey.user.id])).forEach((pak) => App.updateValue(App.preAuthKeys, pak));
+				}}
+			/>
+		{/if}
+	</div>
+	<div class="grid grid-cols-2 gap-1 lg:grid-cols-4">
+		{#each flags as [name, on]}
+			<Badge variant={on ? (name === 'Expired' ? 'destructive' : 'default') : 'outline'} class={on ? '' : 'opacity-50'}>{name}</Badge>
 		{/each}
 	</div>
-	{#if !expired}
-		<Delete
-			label="Expire"
-			func={async () => {
-				await expirePreAuthKey(preAuthKey);
-				(await getPreAuthKeys([preAuthKey.user.id])).forEach((pak) => App.updateValue(App.preAuthKeys, pak));
-			}}
-		/>
-	{/if}
 </div>

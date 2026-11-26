@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AclToolbar from '$lib/parts/AclToolbar.svelte';
-	import { ACLBuilder, type AclSshRules, type AclSshRulesIndexed } from '$lib/common/acl.svelte';
+	import { ACLBuilder, saveConfig, type AclSshRules, type AclSshRulesIndexed } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastSuccess } from '$lib/common/funcs';
 
@@ -53,7 +53,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-<AclToolbar bind:filter={sshRuleFilterString} placeholder="Filter SSH rules…" label="New SSH rule" onclick={newSshRule}></AclToolbar>
+<AclToolbar bind:filter={sshRuleFilterString} placeholder="Filter SSH Rules..." label="Create SSH Rule" onclick={newSshRule} {loading} save={() => saveConfig(acl, { setLoadingTrue: () => (loading = true), setLoadingFalse: () => (loading = false) })}></AclToolbar>
 <div class="flex flex-col gap-3">
 	{#each filteredSshRules as { idx } (idx)}
 		<SshRuleListCard bind:acl bind:loading {idx} open />

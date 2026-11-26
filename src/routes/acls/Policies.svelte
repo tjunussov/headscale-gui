@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AclToolbar from '$lib/parts/AclToolbar.svelte';
-	import { ACLBuilder, HAMetaDefault, type AclPolicies, type AclPoliciesIndexed } from '$lib/common/acl.svelte';
+	import { ACLBuilder, HAMetaDefault, saveConfig, type AclPolicies, type AclPoliciesIndexed } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastSuccess } from '$lib/common/funcs';
 
@@ -57,7 +57,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-<AclToolbar bind:filter={policyFilterString} placeholder="Filter policies…" label="New policy" onclick={newPolicy}></AclToolbar>
+<AclToolbar bind:filter={policyFilterString} placeholder="Filter Policies..." label="Create Policy" onclick={newPolicy} {loading} save={() => saveConfig(acl, { setLoadingTrue: () => (loading = true), setLoadingFalse: () => (loading = false) })}></AclToolbar>
 <div class="flex flex-col gap-3">
 	{#each filteredPolicies as { idx } (idx)}
 		<PolicyListCard bind:acl bind:loading {idx} reorderUp={makeReorderFunc(idx, 'up')} reorderDown={makeReorderFunc(idx, 'down')} />

@@ -8,6 +8,8 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import ArrowRightLeft from '@lucide/svelte/icons/arrow-right-left';
+	import Check from '@lucide/svelte/icons/check';
+	import X from '@lucide/svelte/icons/x';
 	import { App } from '$lib/States.svelte';
 
 	let { node }: { node: Node } = $props();
@@ -32,7 +34,7 @@
 	}
 </script>
 
-<CardListEntry title="Owner" top>
+<CardListEntry title="Owner:" top>
 	<div class="flex items-center justify-end gap-2">
 		<OnlineUserIndicator user={node.user} />
 		<button class="underline-offset-4 hover:underline" onclick={() => openDrawer('userDrawer-' + node.user.id, node.user)}>{node.user.name}</button>
@@ -41,14 +43,16 @@
 	{#if showTransfer}
 		<div class="flex items-center justify-end gap-2 pt-3">
 			<Select.Root type="single" bind:value={transferUser}>
-				<Select.Trigger size="sm" class="w-48">{users.find((u) => u.id === transferUser)?.name ?? 'New owner…'}</Select.Trigger>
+				<span class="text-muted-foreground">New Owner:</span>
+				<Select.Trigger size="sm" class="w-48">{users.find((u) => u.id === transferUser)?.name ?? 'Select…'}</Select.Trigger>
 				<Select.Content>
 					{#each users as u (u.id)}
 						<Select.Item value={u.id} label={u.name}>{u.name}{u.displayName ? ` (${u.displayName})` : ''}</Select.Item>
 					{/each}
 				</Select.Content>
 			</Select.Root>
-			<Button size="sm" disabled={transferring || !transferUser} onclick={transfer}>Transfer</Button>
+			<Button size="icon-sm" variant="ghost" disabled={transferring || !transferUser} onclick={transfer} aria-label="Confirm"><Check /></Button>
+			<Button size="icon-sm" variant="ghost" onclick={() => (showTransfer = false)} aria-label="Cancel"><X /></Button>
 		</div>
 	{/if}
 </CardListEntry>

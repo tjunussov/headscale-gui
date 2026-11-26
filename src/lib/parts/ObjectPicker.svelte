@@ -6,7 +6,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { toastError } from '$lib/common/funcs';
 
-	let { options, ports = false, portsDisabled = false, add }: { options: Record<string, string[] | undefined>; ports?: boolean; portsDisabled?: boolean; add: (host: string, ports: string) => void } = $props();
+	let { options, ports = false, portsDisabled = false, placeholder = 'Object...', add }: { options: Record<string, string[] | undefined>; ports?: boolean; portsDisabled?: boolean; placeholder?: string; add: (host: string, ports: string) => void } = $props();
 	let type = $state('custom');
 	let host = $state('');
 	let portStr = $state('');
@@ -31,9 +31,9 @@
 				</Select.Content>
 			</Select.Root>
 		{:else}
-			<Input class="flex-1 font-mono" placeholder="host, CIDR, * …" bind:value={host} autocomplete="off" />
+			<Input class="flex-1 font-mono" {placeholder} bind:value={host} autocomplete="off" />
 		{/if}
-		{#if ports}<Input class="w-32 font-mono" placeholder="ports (*, 22,443)" bind:value={portStr} disabled={portsDisabled} autocomplete="off" />{/if}
+		{#if ports}<Input class="w-32 font-mono" placeholder="Dst Ports..." bind:value={portStr} disabled={portsDisabled} autocomplete="off" />{/if}
 		<Button type="submit" variant="secondary" disabled={!host}>Add</Button>
 	</div>
 </form>

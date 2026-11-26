@@ -89,7 +89,7 @@
 		{#if userNames.includes(hostName)}
 			<Tooltip.Provider>
 				<Tooltip.Root>
-					<Tooltip.Trigger><TriangleAlert class="size-4 text-amber-500" /></Tooltip.Trigger>
+					<Tooltip.Trigger><TriangleAlert class="size-4 text-muted-foreground" /></Tooltip.Trigger>
 					<Tooltip.Content>Host '{hostName}' has the same name as a user. Please rename it.</Tooltip.Content>
 				</Tooltip.Root>
 			</Tooltip.Provider>

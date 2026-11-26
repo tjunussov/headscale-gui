@@ -21,7 +21,7 @@
 </script>
 
 <ModeWatcher />
-<Toaster richColors position="bottom-right" />
+<Toaster position="bottom-right" />
 <PageDrawer />
 <Sidebar.Provider style="--sidebar-width: calc(var(--spacing) * 64); --header-height: calc(var(--spacing) * 12);">
 	<AppSidebar />

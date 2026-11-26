@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AclToolbar from '$lib/parts/AclToolbar.svelte';
-	import { type ACLBuilder } from '$lib/common/acl.svelte';
+	import { saveConfig, type ACLBuilder } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastError, toastSuccess } from '$lib/common/funcs';
 	import TagOwnerListCard from '$lib/cards/acl/TagOwnerListCard.svelte';
@@ -48,7 +48,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-<AclToolbar bind:filter={tagsFilter} placeholder="Filter tags…" label="New tag" onclick={toggleShowCreateTag}>
+<AclToolbar bind:filter={tagsFilter} placeholder="Filter Tags..." label="Create Tag" onclick={toggleShowCreateTag} {loading} save={() => saveConfig(acl, { setLoadingTrue: () => (loading = true), setLoadingFalse: () => (loading = false) })}>
 	{#if showCreateTag}<NewItem title="Tag" disabled={loading} bind:name={newTagName} submit={() => newTag()} />{/if}
 </AclToolbar>
 <div class="flex flex-col gap-3">

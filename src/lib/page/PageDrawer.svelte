@@ -13,7 +13,6 @@
 	<Sheet.Content class="w-full overflow-y-auto sm:max-w-xl">
 		<Sheet.Header>
 			<Sheet.Title>{user?.name ?? node?.givenName ?? ''}</Sheet.Title>
-			<Sheet.Description>{user ? `User #${user.id}` : node ? `Node #${node.id} · ${node.user.name}` : ''}</Sheet.Description>
 		</Sheet.Header>
 		<div class="px-4 pb-6">
 			{#if user}{#key user.id}<UserInfo {user} />{/key}{/if}

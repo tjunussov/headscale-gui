@@ -113,7 +113,7 @@ export class ACLBuilder implements ACL {
 
     static addPolicyMeta(policy: AclPolicy): boolean {
 		if (policy["#ha-meta"] === undefined){
-			policy["#ha-meta"] = HAMetaDefault
+			policy["#ha-meta"] = { ...HAMetaDefault }
 		}
         return policy["#ha-meta"] !== undefined
     }
@@ -575,7 +575,7 @@ export class ACLBuilder implements ACL {
 
     createPolicy(policy: AclPolicy) {
         if (policy["#ha-meta"] === undefined) {
-            policy["#ha-meta"] = HAMetaDefault
+            policy["#ha-meta"] = { ...HAMetaDefault }
         }
 
         this.acls.push(policy)
