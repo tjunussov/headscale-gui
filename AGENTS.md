@@ -70,7 +70,8 @@ Quality gate before commit: `svelte-check` 0 errors, `npm run build` ok, `npm ru
 
 - **Issues:** beads (`bd`). Epics for phases, tasks as children (`bd create ... --parent <epic>`). Claim → work → close. No markdown TODOs.
 - **Branches:** `main` = released. Every major change goes on its own branch, developed in a **git worktree** under `.claude/worktrees/<branch>` (ignored by git). Open a PR into the parent branch; never commit directly to `main`.
-- Current lineage: `main` ← `shadcn` (PR #1, Skeleton → shadcn-svelte migration + mock) ← `ux-parity` (restore upstream UX, monochrome) ← `upstream-028` (port upstream v0.28.0) ← `polish` (taste restyles).
+- History: PRs #1–#4 (shadcn migration → upstream UX parity → v0.28 port → polish) are merged into `main`. New work: branch from `main` in a worktree, PR into `main`.
+- **Release/deploy:** `.github/workflows/release.yml` — on `main`: checks + `ghcr.io/tjunussov/headscale-gui:latest`; on tag `vX.Y.Z`: image `:X.Y.Z` + GitHub Release with `headscale-gui-admin.zip` (static build under `admin/`). Users deploy via Docker or the zip behind their reverse proxy; README documents both (SPA fallback to `admin/200.html` is required).
 - Commits: imperative summary + body, end with the Co-Authored-By trailer. Push before ending a session (see below).
 - **Upstream baseline = release tags, not `upstream/main`** (main lags; v0.27/v0.28 exist only as tags). Current baseline: **v0.28.0** (Headscale 0.28 API: node `tags`, `/api/v1/health`, list-all + DELETE preauth keys, keys created on Deploy, Auto Approvers tab).
 - Pull upstream: `git fetch upstream --tags`, then `git diff <old-tag> <new-tag> -- <logic files> | git apply --3way` for `src/lib/common/**` + `States.svelte.ts`; port UI deltas by hand onto shadcn parts. Skip `src/lib/common/client/` (generated, unused). Mirror API changes in `mock-headscale.js` + its selftest.
