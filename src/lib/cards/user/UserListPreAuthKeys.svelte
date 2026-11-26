@@ -1,158 +1,59 @@
 <script lang="ts">
-	import CardListEntry from '../CardListEntry.svelte';
-	// import CardSeparator from '../CardSeparator.svelte';
-	import RawMdiCheckCircleOutline from '~icons/mdi/check-circle-outline';
-	import RawMdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
 	import UserListPreAuthKey from '$lib/cards/user/UserListPreAuthKey.svelte';
 	import type { PreAuthKey, User } from '$lib/common/types';
-	import { slide } from 'svelte/transition';
 	import { createPreAuthKey } from '$lib/common/api';
 	import { debug } from '$lib/common/debug';
-	import CardSeparator from '../CardSeparator.svelte';
 	import { App } from '$lib/States.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import Plus from '@lucide/svelte/icons/plus';
 
-	type UserListPreAuthKeysProps = {
-		user: User,
-		title?: string,
-	}
-	let {
-		user = $bindable(),
-		title = 'PreAuth Keys:',
-	}: UserListPreAuthKeysProps = $props();
+	let { user = $bindable(), title = 'PreAuth Keys' }: { user: User; title?: string } = $props();
+
+	const defaultExpires = (h = 1) => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4 + h * 36e5).toISOString().slice(0, 16);
+	const isExpiredOrUsed = (p: PreAuthKey) => new Date() > new Date(p.expiration) || (p.used && !p.reusable);
 
 	let hideInvalid = $state(true);
-
 	let showCreate = $state(false);
-	let disableCreate = $state(false);
-	let checked = $state(defaultChecked());
+	let busy = $state(false);
+	let opts = $state({ ephemeral: false, reusable: false });
 	let expires = $state(defaultExpires());
-	const preAuthKeys = $derived(
-		App.preAuthKeys.value.filter((p) => {
-			return (p.user.id === user.id) 
-				&& (!hideInvalid || (hideInvalid && !isExpiredOrUsed(p)));
-		})
-	);
+	const keys = $derived(App.preAuthKeys.value.filter((p) => p.user.id === user.id && (!hideInvalid || !isExpiredOrUsed(p))));
 
-	function defaultExpires(hours: number = 1, minutes: number = 0) {
-		const tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
-		return new Date(Date.now() - tzOffset + minutes * 60 * 1000 + hours * 60 * 60 * 1000)
-			.toISOString()
-			.split(':')
-			.slice(0, 2) // up to minutes, remove TZ info
-			.join(':');
+	async function create() {
+		busy = true;
+		try {
+			App.preAuthKeys.value.push(await createPreAuthKey(user, opts.ephemeral, opts.reusable, expires));
+			showCreate = false;
+			opts = { ephemeral: false, reusable: false };
+		} catch (e) { debug(e); } finally { busy = false; }
 	}
-
-	function defaultChecked() {
-		return {
-			ephemeral: false,
-			reusable: false,
-		};
-	}
-
-	function isExpiredOrUsed(p: PreAuthKey): boolean {
-		return new Date() > new Date(p.expiration) || (p.used && !p.reusable);
-	};
 </script>
 
-<CardListEntry {title} top>
-	<div class="grid grid-cols-12">
-		<div class="flex col-span-12 justify-end items-center">
-			<input class="checkbox mx-0 pr-1" type="checkbox" bind:checked={hideInvalid} />
-			<p class="ml-1 md:ml-2 text-xs">Hide Invalid</p>
-			<button
-				disabled={disableCreate}
-				type="button"
-				class="btn btn-sm rounded-md variant-filled-success px-2 py-[2px] ml-6"
-				onclick={() => {
-					if (!showCreate) {
-						expires = defaultExpires();
-						showCreate = true;
-					} else {
-						showCreate = false;
-					}
-				}}
-			>
-				Create
-			</button>
+<div class="py-3 text-sm">
+	<div class="flex items-center justify-between gap-4">
+		<span class="text-muted-foreground">{title}</span>
+		<div class="flex items-center gap-3">
+			<Label class="text-xs font-normal"><Checkbox bind:checked={hideInvalid} />Hide invalid</Label>
+			<Button size="xs" variant="outline" onclick={() => { expires = defaultExpires(); showCreate = !showCreate; }}><Plus />New key</Button>
 		</div>
-		{#if showCreate}
-			<div
-				transition:slide|global
-				class="flex flex-row flex-wrap col-span-12 pt-2 justify-end text-sm"
-			>
-				<div class="flex flex-col">
-					<div
-						class="flex flex-row flex-wrap col-span-12 py-2 space-x-3 justify-end items-center text-sm"
-					>
-						<button
-							disabled={disableCreate}
-							onclick={async () => {
-								disableCreate = true;
-								try {
-									const preAuthKey = await createPreAuthKey(
-										user,
-										checked.ephemeral,
-										checked.reusable,
-										expires,
-									);
-									App.preAuthKeys.value.push(preAuthKey)
-								} catch (e) {
-									debug(e);
-								} finally {
-									showCreate = false;
-									disableCreate = false;
-									checked = defaultChecked();
-								}
-							}}
-						>
-							<RawMdiCheckCircleOutline />
-						</button>
-						<button disabled={disableCreate} onclick={() => (showCreate = false)}>
-							<RawMdiCloseCircleOutline />
-						</button>
-					</div>
-					<div
-						class="flex flex-row flex-wrap col-span-12 pt-2 space-x-3 justify-end items-center text-sm"
-					>
-						<input
-							disabled={disableCreate}
-							type="datetime-local"
-							class="input rounded-md text-xs flex-1"
-							bind:value={expires}
-						/>
-					</div>
-					<div
-						class="flex flex-row flex-wrap col-span-12 py-2 space-x-3 justify-end items-center text-sm"
-					>
-						<label class="flex items-center space-x-2 py-2">
-							<input
-								disabled={disableCreate}
-								class="checkbox"
-								type="checkbox"
-								bind:checked={checked.ephemeral}
-							/>
-							<p>Ephemeral</p>
-						</label>
-						<label class="flex items-center space-x-2 py-2">
-							<input
-								disabled={disableCreate}
-								class="checkbox"
-								type="checkbox"
-								bind:checked={checked.reusable}
-							/>
-							<p>Reusable</p>
-						</label>
-					</div>
-				</div>
-			</div>
-		{/if}
 	</div>
-	{#snippet childBottom()}
-		<div class="grid grid-cols-12 col-span-12 pt-4">
-			{#each preAuthKeys as preAuthKey}
-				<CardSeparator />
-				<UserListPreAuthKey {preAuthKey} />
-			{/each}
+	{#if showCreate}
+		<div class="mt-3 flex flex-col gap-3 rounded-lg border bg-muted/40 p-3">
+			<div class="flex flex-wrap items-center gap-4">
+				<Input type="datetime-local" class="h-8 w-56" bind:value={expires} disabled={busy} />
+				<Label class="font-normal"><Checkbox bind:checked={opts.ephemeral} disabled={busy} />Ephemeral</Label>
+				<Label class="font-normal"><Checkbox bind:checked={opts.reusable} disabled={busy} />Reusable</Label>
+			</div>
+			<div class="flex justify-end gap-2">
+				<Button size="sm" variant="ghost" onclick={() => (showCreate = false)}>Cancel</Button>
+				<Button size="sm" disabled={busy} onclick={create}>Create key</Button>
+			</div>
 		</div>
-	{/snippet}
-</CardListEntry>
+	{/if}
+	<div class="mt-2 divide-y">
+		{#each keys as preAuthKey (preAuthKey.key)}<UserListPreAuthKey {preAuthKey} />{:else}<p class="py-2 text-muted-foreground">No keys</p>{/each}
+	</div>
+</div>

@@ -1,14 +1,11 @@
 <script lang="ts">
-	import { Accordion, getToastStore } from '@skeletonlabs/skeleton';
-	import { saveConfig, type ACLBuilder } from '$lib/common/acl.svelte';
+	import AclToolbar from '$lib/parts/AclToolbar.svelte';
+	import { type ACLBuilder } from '$lib/common/acl.svelte';
 	import { debug } from '$lib/common/debug';
 	import { toastError, toastSuccess } from '$lib/common/funcs';
-	import CardListPage from '$lib/cards/CardListPage.svelte';
 	import TagOwnerListCard from '$lib/cards/acl/TagOwnerListCard.svelte';
 	import NewItem from '$lib/parts/NewItem.svelte';
-	import RawMdiSave from '~icons/mdi/content-save-outline'
 
-	const ToastStore = getToastStore();
 
 	let {acl = $bindable(), loading = $bindable(false)}: {acl: ACLBuilder, loading?: boolean} = $props();
 
@@ -21,12 +18,12 @@
 		loading = true;
 		try {
 			acl.createTag(newTagName);
-			toastSuccess(`Tag Ownership of '${newTagName}' created`, ToastStore);
+			toastSuccess(`Tag Ownership of '${newTagName}' created`);
 			newTagName = '';
 			showCreateTag = false;
 		} catch (e) {
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		} finally {
 			loading = false;
@@ -50,42 +47,13 @@
 
 </script>
 
-<CardListPage>
-	<div class="mb-2">
-		<div class="flex flex-row space-x-2">
-			<button disabled={loading} class="btn-icon rounded-md variant-filled-success disabled:opacity-50 w-8 text-xl" onclick={() => { 
-				saveConfig(acl, ToastStore, {setLoadingTrue: () => { loading = true}, setLoadingFalse: ()=> { loading = false }})
-			}}>
-				<RawMdiSave />
-			</button>
-			<button class="btn-sm rounded-md variant-filled-success" onclick={toggleShowCreateTag}>
-				Create Tag
-			</button>
-		</div>
-		{#if showCreateTag}
-			<NewItem
-				title="Tag"
-				disabled={loading}
-				bind:name={newTagName}
-				submit={() => {
-					newTag();
-				}}
-			/>
-		{/if}
-	</div>
-
-	<div class="flex items-center pb-4 mt-4">
-		<input
-			autocomplete="off"
-			type="text"
-			class="input rounded-md text-sm mb-0"
-			placeholder="Filter Tags..."
-			bind:value={tagsFilter}
-		/>
-	</div>
-	<Accordion autocollapse={false}>
-	{#each filteredTags as tag}
+<div class="flex flex-col gap-4">
+<AclToolbar bind:filter={tagsFilter} placeholder="Filter tags…" label="New tag" onclick={toggleShowCreateTag}>
+	{#if showCreateTag}<NewItem title="Tag" disabled={loading} bind:name={newTagName} submit={() => newTag()} />{/if}
+</AclToolbar>
+<div class="flex flex-col gap-3">
+	{#each filteredTags as tag (tag)}
 		<TagOwnerListCard bind:acl tagName={tag} />
 	{/each}
-	</Accordion>
-</CardListPage>
+</div>
+</div>

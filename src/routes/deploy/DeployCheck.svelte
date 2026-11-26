@@ -1,68 +1,20 @@
 <script lang="ts">
-	import RawMdiInfo from '~icons/mdi/info';
+	import { Switch } from '$lib/components/ui/switch/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
 	import { slide } from 'svelte/transition';
-	import { type PopupSettings, popup } from '@skeletonlabs/skeleton';
-	import { xxHash32 } from 'js-xxhash';
-	import { type Snippet } from 'svelte';
+	import type { Snippet } from 'svelte';
 
-	type DeployCheckTypes = {
-		name: string,
-		help?: string,
-		checked: boolean,
-		children?: Snippet,
-	}
-
-	let { name, help, checked = $bindable(), children = undefined }: DeployCheckTypes = $props()
-
-	const popupId = xxHash32(name).toString();
-	let popupShow = $state(false);
-
-	let timerInfo: ReturnType<typeof setTimeout>;
-
-	const popupInfo: PopupSettings = {
-		event: 'hover',
-		target: 'popupHover-' + popupId,
-		placement: 'top',
-	};
-
-	function handleMouseEnter() {
-		timerInfo = setTimeout(() => {
-			popupShow = true;
-		}, 333);
-	}
-
-	function handleMouseLeave() {
-		popupShow = false;
-		clearTimeout(timerInfo);
-	}
+	let { name, help, checked = $bindable(), children }: { name: string; help?: string; checked: boolean; children?: Snippet } = $props();
+	const id = 'deploy-' + name.toLowerCase().replace(/\W+/g, '-');
 </script>
 
-<div
-	class="card p-4 variant-filled-tertiary {popupShow ? '' : 'invisible'}"
-	data-popup="popupHover-{popupId}"
->
-	<p>{help}</p>
-	<div class="arrow variant-filled-tertiary"></div>
-</div>
-
-<div class="flex flex-col col-span-12 md:col-span-6 xl:col-span-4 pb-4 mx-4">
-	<div class="flex items-center space-x-2">
-		{#if help !== undefined}
-			<button
-				class="btn p-0 btn-icon variant-soft-secondary w-6 h-6 [&>*]:pointer-events-none"
-				use:popup={popupInfo}
-				onmouseenter={handleMouseEnter}
-				onmouseleave={handleMouseLeave}
-			>
-				<RawMdiInfo />
-			</button>
-		{/if}
-		<input id={"checkbox-" + name} class="checkbox" type="checkbox" bind:checked />
-		<label for={"checkbox-" + name}>{name}</label>
-	</div>
-	{#if children != undefined && checked}
-		<div transition:slide class="pt-4">
-			{@render children()}
+<div class="flex flex-col gap-3 py-3">
+	<div class="flex items-start justify-between gap-4">
+		<div class="grid gap-1">
+			<Label for={id}>{name}</Label>
+			{#if help}<p class="text-sm text-muted-foreground">{help}</p>{/if}
 		</div>
-	{/if}
+		<Switch {id} bind:checked />
+	</div>
+	{#if children && checked}<div transition:slide>{@render children()}</div>{/if}
 </div>

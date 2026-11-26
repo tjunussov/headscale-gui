@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	
 	import type { ACLBuilder } from '$lib/common/acl.svelte';
 	import type { User } from '$lib/common/types';
 	import { toastSuccess, toastError } from '$lib/common/funcs';
@@ -7,14 +7,12 @@
 	import Delete from '$lib/parts/Delete.svelte';
 	import CardListContainer from '$lib/cards/CardListContainer.svelte';
 	import { debug } from '$lib/common/debug';
-	import { get } from 'svelte/store';
 
-	import RawMdiTag from '~icons/mdi/tag';
+	import RawMdiTag from '@lucide/svelte/icons/tag';
 	import Text from '$lib/parts/Text.svelte';
 	import ListEntry from './ListEntry.svelte';
 	import { App } from '$lib/States.svelte';
 
-	const ToastStore = getToastStore();
 
 	type TagOwnerListCardProps = {
 		acl: ACLBuilder,
@@ -57,13 +55,13 @@
 		try {
 			if (tag.name !== tagNameNew) {
 				acl.renameTag(tag.name, tagNameNew);
-				toastSuccess(`Tag renamed from '${tag.name}' to '${tagNameNew}'`, ToastStore);
+				toastSuccess(`Tag renamed from '${tag.name}' to '${tagNameNew}'`);
 				tagName = tagNameNew;
 			}
 			return true;
 		} catch (e) {
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 			debug(e)
 		} finally {
@@ -76,10 +74,10 @@
 		loading = true
 		try{
 			acl.deleteTag(tag.name);
-			toastSuccess(`Tag '${tag.name}' deleted`, ToastStore)
+			toastSuccess(`Tag '${tag.name}' deleted`)
 		}catch(e){
 			if(e instanceof Error){
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 			debug(e);
 		} finally {
@@ -100,13 +98,13 @@
 <ListEntry id={tagName} name={tagName} logo={RawMdiTag} bind:open>
 	{#snippet children()}
 	<CardListContainer>
-		<h3 class="font-mono mb-4 flex flex-row items-center">
+		<h3 class="mb-3 flex items-center gap-1 text-sm text-muted-foreground">
 			<span>Owners of</span>
 			<Text
 				bind:value={tag.name}
 				bind:valueNew={tagNameNew}
 				submit={() => { tag.name = tagNameNew; return true}}
-				classes="font-extralight text-secondary-500 dark:text-secondary-300 rounded-md"
+				classes="font-medium text-foreground"
 				showRenameIcon={true}
 			/>
 		</h3>
@@ -118,7 +116,7 @@
 			onItemClick={removeMember}
 		/>
 		<div class="pt-4">
-			<Delete func={deleteTag} />
+			<Delete label="Delete" func={deleteTag} />
 		</div>
 	</CardListContainer>
 	{/snippet}

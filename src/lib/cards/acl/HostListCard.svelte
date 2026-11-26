@@ -1,13 +1,12 @@
 <script lang="ts">
-	import RawMdiAlert from '~icons/mdi/alert';
-	import { getToastStore, popup, type PopupSettings } from '@skeletonlabs/skeleton';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import type { ACLBuilder } from '$lib/common/acl.svelte';
 	import { toastSuccess, toastError } from '$lib/common/funcs';
 	import Delete from '$lib/parts/Delete.svelte';
 	import { debug } from '$lib/common/debug';
 	import Text from '$lib/parts/Text.svelte';
 
-	const ToastStore = getToastStore();
 
 	type HostListCardProps = {
 		acl: ACLBuilder,
@@ -38,7 +37,7 @@
 		try {
 			if (host.name !== hostNameNew) {
 				acl.renameHost(host.name, hostNameNew);
-				// toastSuccess(`Host renamed from '${host.name}' to '${hostNameNew}'`, ToastStore);
+				// toastSuccess(`Host renamed from '${host.name}' to '${hostNameNew}'`);
 				hostName = hostNameNew
 				debug(acl.hosts);
 			}
@@ -46,7 +45,7 @@
 		} catch (e) {
 			debug(e);
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		} finally {
 			loading = false;
@@ -64,7 +63,7 @@
 		} catch (e) {
 			debug(e);
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		} finally {
 			loading = false;
@@ -74,76 +73,31 @@
 	function deleteHost() {
 		try {
 			acl.deleteHost(host.name);
-			toastSuccess(`Host '${host.name}' deleted`, ToastStore);
+			toastSuccess(`Host '${host.name}' deleted`);
 		} catch (e) {
 			debug(e);
 			if (e instanceof Error) {
-				toastError('', ToastStore, e);
+				toastError('', e);
 			}
 		}
 	}
 
-	let timerInfo: ReturnType<typeof setTimeout>;
-	let popupShow = $state(false)
-
-	const popupInfo: PopupSettings = {
-		event: 'hover',
-		target: 'popupHover-host-' + hostName,
-		placement: 'top',
-	};
-
-	function handleMouseEnter() {
-		timerInfo = setTimeout(() => {
-			popupShow = true;
-		}, 333);
-	}
-
-	function handleMouseLeave() {
-		popupShow = false;
-		clearTimeout(timerInfo);
-	}
 </script>
 
-<div
-	class="card p-4 variant-filled-warning text-center {popupShow ? '' : 'invisible'}"
-	data-popup="popupHover-host-{hostName}"
->
-	<p>Host '{hostName}' has the same name as a user.<br />Please rename the host.</p>
-	<div class="arrow variant-filled-warning"></div>
-</div>
-
-<div
-	class="card py-3 px-4 grid grid-cols-12 backdrop-brightness-100 bg-white/25 dark:bg-white/5 rounded-md"
->
-	<div class="col-span-4 text-wrap hyphens-auto flex flex-row">
+<div class="flex items-center gap-3 px-4 py-2.5 text-sm">
+	<div class="flex w-1/3 items-center gap-2">
 		{#if userNames.includes(hostName)}
-		<button
-			class="btn p-1 btn-icon variant-soft-error w-6 h-6 [&>*]:pointer-events-none"
-			use:popup={popupInfo}
-			onmouseenter={handleMouseEnter}
-			onmouseleave={handleMouseLeave}
-		>
-			<RawMdiAlert />
-		</button>
+			<Tooltip.Provider>
+				<Tooltip.Root>
+					<Tooltip.Trigger><TriangleAlert class="size-4 text-amber-500" /></Tooltip.Trigger>
+					<Tooltip.Content>Host '{hostName}' has the same name as a user. Please rename it.</Tooltip.Content>
+				</Tooltip.Root>
+			</Tooltip.Provider>
 		{/if}
-		<Text
-			bind:value={host.name}
-			bind:valueNew={hostNameNew}
-			submit={() => { host.name = hostNameNew; return true }}
-			classes="font-extralight rounded-md"
-			showRenameIcon={false}
-		/>
+		<Text bind:value={host.name} bind:valueNew={hostNameNew} submit={() => { host.name = hostNameNew; return true; }} classes="font-medium" showRenameIcon />
 	</div>
-	<div class="col-span-4 text-left">
-		<Text
-			bind:value={host.cidr}
-			bind:valueNew={hostCIDRNew}
-			submit={() => { host.cidr = hostCIDRNew; return true }}
-			classes="text-sm font-mono rounded-md text-primary-500 dark:text-primary-300"
-			showRenameIcon={false}
-		/>
+	<div class="flex-1">
+		<Text bind:value={host.cidr} bind:valueNew={hostCIDRNew} submit={() => { host.cidr = hostCIDRNew; return true; }} classes="font-mono text-muted-foreground" showRenameIcon />
 	</div>
-	<div class="col-span-3 text-right">
-		<Delete func={deleteHost} disabled={loading} />
-	</div>
+	<Delete func={deleteHost} disabled={loading} />
 </div>

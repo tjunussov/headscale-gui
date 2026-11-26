@@ -1,73 +1,88 @@
 <script lang="ts">
-	import CardListPage from '$lib/cards/CardListPage.svelte';
-	import UserCreate from '$lib/cards/user/UserCreate.svelte';
-	import UserListCard from '$lib/cards/user/UserListCard.svelte';
-	import UserTileCard from '$lib/cards/user/UserTileCard.svelte';
-	import CardTilePage from '$lib/cards/CardTilePage.svelte';
+	import * as Table from '$lib/components/ui/table/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PageHeader from '$lib/page/PageHeader.svelte';
-
-	import Page from '$lib/page/Page.svelte';
-	import type { User, Direction, OnlineStatus } from '$lib/common/types';
-	import SortBtn from '$lib/parts/SortBtn.svelte';
+	import ListToolbar from '$lib/parts/ListToolbar.svelte';
+	import SortHead from '$lib/parts/SortHead.svelte';
+	import OnlineUserIndicator from '$lib/parts/OnlineUserIndicator.svelte';
+	import UserCreate from '$lib/cards/user/UserCreate.svelte';
+	import { getSortedFilteredUsers, openDrawer, dateToStr } from '$lib/common/funcs';
+	import { getUserDisplay, type Direction, type OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
-	import { getSortedFilteredUsers } from '$lib/common/funcs';
-	import FilterOnlineBtn from '$lib/parts/FilterOnlineBtn.svelte';
 
-	let showCreate = $state(false);
-	const layout = $derived(App.layoutUser.value)
+	let sort = $state('id');
+	let dir = $state<Direction>('up');
+	let status = $state<OnlineStatus>('all');
+	let search = $state('');
 
-	// Sort & Filter
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
-	
-	const usersSortedFiltered = $derived(
-		getSortedFilteredUsers(App.users.value, filterString, sortMethod, sortDirection, filterOnlineStatus)
-	)
-
-	const Outer = $derived(layout == 'list' ? CardListPage : CardTilePage);
-	const Inner = $derived(layout == 'list' ? UserListCard : UserTileCard);
-
-	function toggle(method: string) {
-		if (method != sortMethod) {
-			sortMethod = method;
-			sortDirection = 'up';
-		} else {
-			sortDirection = sortDirection === 'up' ? 'down' : 'up';
-		}
-	}
+	const rows = $derived(getSortedFilteredUsers(App.users.value, search, sort, dir, status));
+	const count = (s: OnlineStatus) => getSortedFilteredUsers(App.users.value, '', 'id', 'up', s).length;
+	const counts = $derived({ all: count('all'), online: count('online'), offline: count('offline') });
+	const nodeCount = (id: string) => App.nodes.value.filter((n) => n.user.id === id).length;
 </script>
 
-<Page>
-	<PageHeader title="Users" layout={App.layoutUser} bind:show={showCreate} bind:filterString>
-		{#snippet button()}
-			<UserCreate bind:show={showCreate} />
-		{/snippet}
-	</PageHeader>
+{#snippet kv(label: string, value: string)}
+	<div class="flex justify-between gap-4"><span class="text-muted-foreground">{label}</span><span class="truncate text-right font-medium">{value}</span></div>
+{/snippet}
 
-	<div
-		class="btn-group px-0 mx-0 py-0 my-0 rounded-md variant-ghost-secondary [&>*+*]:border-primary-500"
-	>
-		<SortBtn bind:value={sortMethod} direction={sortDirection} name="ID" {toggle} />
-		<SortBtn bind:value={sortMethod} direction={sortDirection} name="Name" {toggle} />
-	</div>
-	<div
-		class="btn-group ml-2 px-0 mx-0 py-0 my-0 rounded-md variant-ghost-secondary [&>*+*]:border-primary-500"
-	>
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="all" name="All" />
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="online" name="Online" />
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="offline" name="Offline" />
-	</div>
+<PageHeader title="Users" description="People and namespaces that own nodes.">
+	{#snippet actions()}<UserCreate />{/snippet}
+</PageHeader>
 
-	<Outer>
-		{#each usersSortedFiltered as user}
-			<Inner {user}></Inner>
-		{/each}
-	</Outer>
-	<!--svelte:component this={outer}>
-		{#each getSortedUsers(filteredUsers, sortMethod, sortDirection) as user}
-			<svelte:component this={inner} {user} />
-		{/each}
-	</svelte:component-->
-</Page>
+<ListToolbar bind:status bind:search {counts} layout={App.layoutUser} />
+
+{#if App.layoutUser.value === 'tile'}
+<div class="grid gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+	{#each rows as user (user.id)}
+		<Card.Root class="cursor-pointer gap-4 transition-colors hover:border-foreground/25" role="button" tabindex={0} onclick={() => openDrawer('userDrawer-' + user.id, user)} onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && openDrawer('userDrawer-' + user.id, user)}>
+			<Card.Header>
+				<Card.Title class="truncate">{getUserDisplay(user)}</Card.Title>
+				<Card.Description class="truncate">#{user.id}{user.email ? ` · ${user.email}` : ''}</Card.Description>
+				<Card.Action><OnlineUserIndicator {user} label /></Card.Action>
+			</Card.Header>
+			<Card.Content class="grid gap-1.5 text-sm">
+				{@render kv('Nodes', String(nodeCount(user.id)))}
+				{@render kv('Provider', user.provider || 'local')}
+				{@render kv('Created', dateToStr(user.createdAt))}
+			</Card.Content>
+		</Card.Root>
+	{:else}
+		<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No users.</p>
+	{/each}
+</div>
+{:else}
+
+<div class="overflow-hidden rounded-lg border">
+	<Table.Root>
+		<Table.Header class="bg-muted/50">
+			<Table.Row>
+				<SortHead name="ID" bind:sort bind:dir class="w-16" />
+				<SortHead name="Name" bind:sort bind:dir />
+				<Table.Head>Provider</Table.Head>
+				<Table.Head class="text-right">Nodes</Table.Head>
+				<Table.Head class="hidden md:table-cell">Created</Table.Head>
+			</Table.Row>
+		</Table.Header>
+		<Table.Body>
+			{#each rows as user (user.id)}
+				<Table.Row class="cursor-pointer" onclick={() => openDrawer('userDrawer-' + user.id, user)}>
+					<Table.Cell class="text-muted-foreground tabular-nums">{user.id}</Table.Cell>
+					<Table.Cell>
+						<div class="flex items-center gap-2">
+							<OnlineUserIndicator {user} />
+							<span class="font-medium">{getUserDisplay(user)}</span>
+							{#if user.email}<span class="hidden text-muted-foreground lg:inline">{user.email}</span>{/if}
+						</div>
+					</Table.Cell>
+					<Table.Cell><Badge variant="outline" class="text-muted-foreground">{user.provider || 'local'}</Badge></Table.Cell>
+					<Table.Cell class="text-right tabular-nums">{nodeCount(user.id)}</Table.Cell>
+					<Table.Cell class="hidden text-muted-foreground md:table-cell">{dateToStr(user.createdAt)}</Table.Cell>
+				</Table.Row>
+			{:else}
+				<Table.Row><Table.Cell colspan={5} class="h-24 text-center text-muted-foreground">No users.</Table.Cell></Table.Row>
+			{/each}
+		</Table.Body>
+	</Table.Root>
+</div>
+{/if}

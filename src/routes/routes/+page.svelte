@@ -1,63 +1,81 @@
 <script lang="ts">
-	import CardListPage from '$lib/cards/CardListPage.svelte';
-	import CardTilePage from '$lib/cards/CardTilePage.svelte';
+	import * as Table from '$lib/components/ui/table/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import PageHeader from '$lib/page/PageHeader.svelte';
-	import RouteListCard from '$lib/cards/route/RouteListCard.svelte';
-	import RouteTileCard from '$lib/cards/route/RouteTileCard.svelte';
-	import Page from '$lib/page/Page.svelte';
-	import SortBtn from '$lib/parts/SortBtn.svelte';
-	import type { OnlineStatus, Direction } from '$lib/common/types';
-	import { getSortedFilteredNodes } from '$lib/common/funcs';
+	import ListToolbar from '$lib/parts/ListToolbar.svelte';
+	import SortHead from '$lib/parts/SortHead.svelte';
+	import OnlineNodeIndicator from '$lib/parts/OnlineNodeIndicator.svelte';
+	import NodeRoute from '$lib/cards/node/NodeRoute.svelte';
+	import { getSortedFilteredNodes, openDrawer } from '$lib/common/funcs';
+	import type { Direction, OnlineStatus } from '$lib/common/types';
 	import { App } from '$lib/States.svelte';
-	import FilterOnlineBtn from '$lib/parts/FilterOnlineBtn.svelte';
 
-	// Sort & Filter
-	let sortMethod = $state('id');
-	let sortDirection = $state<Direction>('up');
-	let filterOnlineStatus = $state<OnlineStatus>('all');
-	let filterString = $state('');
+	let sort = $state('id');
+	let dir = $state<Direction>('up');
+	let status = $state<OnlineStatus>('all');
+	let search = $state('');
 
-	const Outer = $derived(App.layoutRoute.value === 'list' ? CardListPage : CardTilePage);
-	const Inner = $derived(App.layoutRoute.value === 'list' ? RouteListCard : RouteTileCard);
-
-	const nodesSortedFiltered = $derived(
-		getSortedFilteredNodes(App.nodes.value, filterString, sortMethod, sortDirection, filterOnlineStatus, true)
-	)
-
-	function toggle(method: string) {
-		if (method != sortMethod) {
-			sortMethod = method;
-			sortDirection = 'up';
-		} else {
-			sortDirection = sortDirection === 'up' ? 'down' : 'up';
-		}
-	}
+	const nodes = $derived(getSortedFilteredNodes(App.nodes.value, search, sort, dir, status, true));
+	const withRoutes = $derived(App.nodes.value.filter((n) => n.availableRoutes.length));
+	const counts = $derived({ all: withRoutes.length, online: withRoutes.filter((n) => n.online).length, offline: withRoutes.filter((n) => !n.online).length });
+	const exit = (r: string) => r === '0.0.0.0/0' || r === '::/0';
 </script>
 
-<Page>
-	<PageHeader title="Routes" layout={App.layoutRoute} bind:filterString buttonText={""}>
-		{#snippet button()}
-			x
-		{/snippet}
-	</PageHeader>
+{#snippet kv(label: string, value: string)}
+	<div class="flex justify-between gap-4"><span class="text-muted-foreground">{label}</span><span class="truncate text-right font-medium">{value}</span></div>
+{/snippet}
 
-	<div
-		class="btn-group px-0 mx-0 py-0 my-0 rounded-md variant-ghost-secondary [&>*+*]:border-primary-500"
-	>
-		<SortBtn bind:value={sortMethod} direction={sortDirection} name="ID" {toggle} />
-		<SortBtn bind:value={sortMethod} direction={sortDirection} name="Name" {toggle} />
-	</div>
-	<div
-		class="btn-group ml-2 px-0 mx-0 py-0 my-0 rounded-md variant-ghost-secondary [&>*+*]:border-primary-500"
-	>
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="all" name="All" />
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="online" name="Online" />
-		<FilterOnlineBtn bind:value={filterOnlineStatus} status="offline" name="Offline" />
-	</div>
+<PageHeader title="Routes" description="Subnet and exit-node routes advertised by nodes. Toggle to approve." />
 
-	<Outer>
-		{#each nodesSortedFiltered as node}
-			<Inner {node} />
-		{/each}
-	</Outer>
-</Page>
+<ListToolbar bind:status bind:search {counts} layout={App.layoutRoute} />
+
+{#if App.layoutRoute.value === 'tile'}
+<div class="grid gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+	{#each nodes as node (node.id)}
+		<Card.Root class="gap-3">
+			<Card.Header>
+				<Card.Title><button class="flex items-center gap-2 underline-offset-4 hover:underline" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}><OnlineNodeIndicator {node} />{node.givenName}</button></Card.Title>
+				<Card.Description>{node.user.name}</Card.Description>
+				{#if node.availableRoutes.some(exit)}<Card.Action><Badge variant="outline">Exit node</Badge></Card.Action>{/if}
+			</Card.Header>
+			<Card.Content class="divide-y">
+				{#each node.availableRoutes as route (route)}<NodeRoute {route} {node} />{/each}
+			</Card.Content>
+		</Card.Root>
+	{:else}
+		<p class="col-span-full py-12 text-center text-sm text-muted-foreground">No advertised routes.</p>
+	{/each}
+</div>
+{:else}
+
+<div class="overflow-hidden rounded-lg border">
+	<Table.Root>
+		<Table.Header class="bg-muted/50">
+			<Table.Row>
+				<SortHead name="Name" bind:sort bind:dir class="w-1/3" />
+				<Table.Head class="hidden sm:table-cell">User</Table.Head>
+				<Table.Head>Routes</Table.Head>
+			</Table.Row>
+		</Table.Header>
+		<Table.Body>
+			{#each nodes as node (node.id)}
+				<Table.Row class="align-top hover:bg-transparent">
+					<Table.Cell>
+						<button class="flex items-center gap-2 font-medium underline-offset-4 hover:underline" onclick={() => openDrawer('nodeDrawer-' + node.id, node)}>
+							<OnlineNodeIndicator {node} />{node.givenName}
+						</button>
+						{#if node.availableRoutes.some(exit)}<Badge variant="outline" class="mt-1">Exit node</Badge>{/if}
+					</Table.Cell>
+					<Table.Cell class="hidden text-muted-foreground sm:table-cell">{node.user.name}</Table.Cell>
+					<Table.Cell class="max-w-72">
+						{#each node.availableRoutes as route (route)}<NodeRoute {route} {node} />{/each}
+					</Table.Cell>
+				</Table.Row>
+			{:else}
+				<Table.Row><Table.Cell colspan={3} class="h-24 text-center text-muted-foreground">No advertised routes.</Table.Cell></Table.Row>
+			{/each}
+		</Table.Body>
+	</Table.Root>
+</div>
+{/if}

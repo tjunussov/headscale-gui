@@ -5,99 +5,50 @@
 	import { changeNodeOwner } from '$lib/common/api';
 	import { openDrawer, toastError, toastSuccess } from '$lib/common/funcs';
 	import { debug } from '$lib/common/debug';
-	import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton';
-	import { slide } from 'svelte/transition';
-
-	import RawMdiSwapHorizontal from '~icons/mdi/swap-horizontal';
-	import RawMdiCheckCircleOutline from '~icons/mdi/check-circle-outline';
-	import RawMdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
-
+	import * as Select from '$lib/components/ui/select/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import ArrowRightLeft from '@lucide/svelte/icons/arrow-right-left';
 	import { App } from '$lib/States.svelte';
 
-	type NodeOwnerProps = {
-		node: Node,
-	}
-	let { node }: NodeOwnerProps = $props()
-	
-	const drawerStore = getDrawerStore();
+	let { node }: { node: Node } = $props();
 	let transferUser = $state('');
 	let showTransfer = $state(false);
 	let transferring = $state(false);
+	const users = $derived(App.users.value.filter((u) => !!u.name));
 
-	const ToastStore = getToastStore();
-
+	async function transfer() {
+		transferring = true;
+		try {
+			const old = node.user.name;
+			const n = await changeNodeOwner(node, transferUser);
+			App.updateValue(App.nodes, n);
+			showTransfer = false;
+			toastSuccess(`Changed owner of ${node.givenName} from "${old}" to "${n.user.name}"`);
+		} catch (e) {
+			e instanceof Error ? toastError('', e) : debug(e);
+		} finally {
+			transferring = false;
+		}
+	}
 </script>
 
-<CardListEntry title="Owner:" top>
-	<div class="flex flex-row items-center gap-3 justify-end">
-		<!--button type="button" class="btn-sm ml-0"-->
-		<a
-			href=" "
-			onclick={() => {
-				openDrawer(drawerStore, 'userDrawer-' + node.user.id, node.user);
-			}}
-		>
-			{node.user.name}
-		</a>
-		<!--/button-->
+<CardListEntry title="Owner" top>
+	<div class="flex items-center justify-end gap-2">
 		<OnlineUserIndicator user={node.user} />
-		<button
-			type="button"
-			class="btn-sm btn-icon-sm ml-0"
-			onclick={() => {
-				showTransfer = !showTransfer;
-			}}
-		>
-			<RawMdiSwapHorizontal />
-		</button>
+		<button class="underline-offset-4 hover:underline" onclick={() => openDrawer('userDrawer-' + node.user.id, node.user)}>{node.user.name}</button>
+		<Button size="icon-sm" variant="ghost" onclick={() => (showTransfer = !showTransfer)} aria-label="Transfer owner"><ArrowRightLeft /></Button>
 	</div>
 	{#if showTransfer}
-		<div class="flex flex-row items-center justify-end pt-5" transition:slide>
-			<span class="pr-3">New Owner:</span>
-			<label class="label">
-				<select class="select" bind:value={transferUser}>
-					{#each App.users.value.filter(u => !!u.name) as user}
-						<option value={user.id}>{user.name}{!user.displayName ? '' : ` (${user.displayName})`}</option>
+		<div class="flex items-center justify-end gap-2 pt-3">
+			<Select.Root type="single" bind:value={transferUser}>
+				<Select.Trigger size="sm" class="w-48">{users.find((u) => u.id === transferUser)?.name ?? 'New owner…'}</Select.Trigger>
+				<Select.Content>
+					{#each users as u (u.id)}
+						<Select.Item value={u.id} label={u.name}>{u.name}{u.displayName ? ` (${u.displayName})` : ''}</Select.Item>
 					{/each}
-				</select>
-			</label>
-			<button
-				type="submit"
-				class="btn-sm btn-icon-sm"
-				disabled={transferring || transferUser == ''}
-				onclick={async () => {
-					transferring = true;
-					try {
-						const oldUserName = node.user.name;
-						const n = await changeNodeOwner(node, transferUser);
-						App.updateValue(App.nodes, n);
-						showTransfer = false;
-						toastSuccess(
-							`Changed owner of ${node.givenName} from "${oldUserName}" to "${n.user.name}"`,
-							ToastStore,
-						);
-					} catch (error) {
-						if (error instanceof Error) {
-							toastError('', ToastStore, error);
-						} else {
-							debug(error);
-						}
-					} finally {
-						transferring = false;
-					}
-				}}
-			>
-				<RawMdiCheckCircleOutline />
-			</button>
-			<button
-				type="button"
-				class="btn-sm btn-icon-sm"
-				onclick={() => {
-					showTransfer = false;
-				}}
-			>
-				<RawMdiCloseCircleOutline />
-			</button>
+				</Select.Content>
+			</Select.Root>
+			<Button size="sm" disabled={transferring || !transferUser} onclick={transfer}>Transfer</Button>
 		</div>
 	{/if}
 </CardListEntry>

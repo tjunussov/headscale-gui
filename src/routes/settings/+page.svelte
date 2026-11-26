@@ -12,14 +12,20 @@
 	import type { ApiKeyInfo, ExpirationMessage } from '$lib/common/types';
 	import Page from '$lib/page/Page.svelte';
 	import PageHeader from '$lib/page/PageHeader.svelte';
-	import { getToastStore } from '@skeletonlabs/skeleton';
+	
 	import { refreshApiKey } from '$lib/common/api';
 
-	// icons
-	import RawMdiContentSaveOutline from '~icons/mdi/content-save-outline';
-	import RawMdiOrbit from '~icons/mdi/orbit-variant';
-	import RawMdiEye from '~icons/mdi/eye-outline';
-	import RawMdiEyeOff from '~icons/mdi/eye-off-outline';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import * as InputGroup from '$lib/components/ui/input-group/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Switch } from '$lib/components/ui/switch/index.js';
+	import Save from '@lucide/svelte/icons/save';
+	import RotateCw from '@lucide/svelte/icons/rotate-cw';
+	import Eye from '@lucide/svelte/icons/eye';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
 
 	import { App } from '$lib/States.svelte';
 	import { goto } from '$app/navigation';
@@ -38,7 +44,6 @@
 		debug: App.debug.value,
 	});
 
-	const ToastStore = getToastStore();
 
 	let apiKeyInfo = $derived(App.apiKeyInfo.value);
 	let apiKeyShow = $state(false);
@@ -74,8 +79,8 @@
 				informedUnauthorized: false,
 				informedExpiringSoon: false,
 			};
-			toastSuccess('Saved Settings', ToastStore);
-			const handler = createPopulateErrorHandler(ToastStore);
+			toastSuccess('Saved Settings');
+			const handler = createPopulateErrorHandler();
 			await App.populateApiKeyInfo().catch(handler);
 			await App.populateAll(handler, false);
 		} catch (err) {
@@ -86,132 +91,70 @@
 	}
 </script>
 
-<Page classes="items-start">
-	<PageHeader title="Settings" />
-	<form onsubmit={saveSettings} class="max-w-3xl p-6 card">
-		<div class="space-y-6">
-			<div>
-				<label for="api-url" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API URL</label>
-				<input
-					id="api-url"
-					class="mt-1 block w-full rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
-					type="text"
-					placeholder={page.url.origin}
-					disabled={loading}
-					bind:value={settings.apiUrl}
-				/>
-			</div>
-
-			<div>
-				<label for="api-key" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API Key</label>
-				<div class="mt-1 flex items-center">
-					<input
-						id="api-key"
-						class="flex-1 rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
-						type={apiKeyShow ? "text" : "password"}
-						placeholder="Enter your API Key"
-						disabled={loading}
-						bind:value={settings.apiKey}
-					/>
-					<button
-						type="button"
-						disabled={loading}
-						class="ml-2 p-2 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 focus:outline-none"
-						onclick={() => { apiKeyShow = !apiKeyShow; }}
-						aria-label={apiKeyShow ? "Hide API Key" : "Show API Key"}
-					>
-						{#if apiKeyShow}
-							<RawMdiEyeOff class="w-5 h-5" />
-						{:else}
-							<RawMdiEye class="w-5 h-5" />
-						{/if}
-					</button>
-					<button
-						type="button"
-						disabled={loading}
-						class="ml-2 p-2 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 focus:outline-none"
-						onclick={async () => {
-							loading = true;
-							try {
-								await refreshApiKey();
-								settings.apiKey = App.apiKey.value;
-								saveSettings();
-							} finally {
-								loading = false;
-							}
-						}}
-						aria-label="Refresh API Key"
-					>
-						<RawMdiOrbit />
-					</button>
-				</div>
+<Page>
+	<PageHeader title="Settings" description="Connect TJNPVScale to your Headscale API. Stored only in this browser." />
+	<form onsubmit={saveSettings} class="grid max-w-3xl gap-6">
+		<Card.Root>
+			<Card.Header>
+				<Card.Title>API connection</Card.Title>
+				<Card.Description>Create a key with <code class="font-mono">headscale apikeys create</code>.</Card.Description>
 				{#if apiKeyInfo.authorized !== null}
-					<div class="mt-2 text-sm">
-						<span class={apiKeyInfo.authorized ? "text-success-600 dark:text-success-400" : "text-error-600 dark:text-error-400"}>
-							{apiKeyInfo.authorized ? "Authorized" : "Not Authorized"}
-						</span>
-						{#if apiKeyInfo.authorized && apiKeyExpirationMessage}
-							<span class="ml-2 text-zinc-500 dark:text-zinc-400">
-								Expires in: {apiKeyExpirationMessage.message}
-							</span>
-						{/if}
-					</div>
-				{:else if loading}
-					<div class="mt-2 text-sm text-yellow-500 dark:text-yellow-400">Checking authorization...</div>
+					<Card.Action>
+						<Badge variant={apiKeyInfo.authorized ? 'secondary' : 'destructive'} class="gap-1.5">
+							<span class="size-2 rounded-full {apiKeyInfo.authorized ? 'bg-emerald-500' : 'bg-white'}"></span>
+							{apiKeyInfo.authorized ? 'Authorized' : 'Not authorized'}
+						</Badge>
+					</Card.Action>
 				{/if}
-			</div>
+			</Card.Header>
+			<Card.Content class="grid gap-6">
+				<div class="grid gap-2">
+					<Label for="api-url">API URL</Label>
+					<Input id="api-url" placeholder={page.url.origin} disabled={loading} bind:value={settings.apiUrl} />
+				</div>
+				<div class="grid gap-2">
+					<Label for="api-key">API key</Label>
+					<InputGroup.Root>
+						<InputGroup.Input id="api-key" class="font-mono" type={apiKeyShow ? 'text' : 'password'} placeholder="Enter your API key" disabled={loading} bind:value={settings.apiKey} />
+						<InputGroup.Addon align="inline-end">
+							<InputGroup.Button size="icon-xs" disabled={loading} onclick={() => (apiKeyShow = !apiKeyShow)} aria-label={apiKeyShow ? 'Hide API key' : 'Show API key'}>
+								{#if apiKeyShow}<EyeOff />{:else}<Eye />{/if}
+							</InputGroup.Button>
+							<InputGroup.Button
+								size="icon-xs"
+								disabled={loading}
+								aria-label="Rotate API key"
+								onclick={async () => { loading = true; try { await refreshApiKey(); settings.apiKey = App.apiKey.value; saveSettings(); } finally { loading = false; } }}
+							><RotateCw /></InputGroup.Button>
+						</InputGroup.Addon>
+					</InputGroup.Root>
+					<p class="text-sm text-muted-foreground">
+						{#if loading}Checking authorization…{:else if apiKeyInfo.authorized && apiKeyExpirationMessage.message}Expires {apiKeyExpirationMessage.message}{:else}&nbsp;{/if}
+					</p>
+				</div>
+				<div class="grid gap-2">
+					<Label for="api-ttl">Refresh interval (seconds)</Label>
+					<Input id="api-ttl" class="w-32" type="number" min="1" disabled={loading} bind:value={settings.apiTtl} />
+				</div>
+			</Card.Content>
+			<Card.Footer class="justify-end border-t">
+				<Button type="submit" disabled={loading || !settings.apiKey}><Save />Save settings</Button>
+			</Card.Footer>
+		</Card.Root>
 
-			<div>
-				<label for="api-ttl" class="block text-sm font-medium text-zinc-700 dark:text-zinc-200">API Refresh Interval (seconds)</label>
-				<input
-					id="api-ttl"
-					class="mt-1 block w-32 rounded-md border-zinc-300 shadow-sm focus:border-zinc-400 focus:ring-zinc-400 dark:bg-zinc-950 dark:border-zinc-800 dark:text-white"
-					type="number"
-					min="1"
-					disabled={loading}
-					bind:value={settings.apiTtl}
-				/>
-			</div>
-
-			<div class="flex items-center">
-				<input
-					id="debugging"
-					type="checkbox"
-					class="h-4 w-4 text-zinc-900 border-zinc-300 rounded dark:bg-zinc-950 dark:border-zinc-800"
-					disabled={loading}
-					bind:checked={settings.debug}
-				/>
-				<label for="debugging" class="ml-2 block text-sm text-zinc-700 dark:text-zinc-200">
-					Console Debugging
-				</label>
-			</div>
-
-			<div class="flex items-start justify-between space-x-4">
-				<button type="button" class="btn btn-sm rounded-md variant-ghost-primary w-full" onclick={() => console.log(JSON.stringify(App.users.value, null, 4))}>
-					Log Users
-				</button>
-				<button type="button" class="btn btn-sm rounded-md variant-ghost-primary w-full" onclick={() => console.log(JSON.stringify(App.nodes.value, null, 4))}>
-					Log Nodes
-				</button>
-				<button type="button" class="btn btn-sm rounded-md variant-ghost-primary w-full" onclick={() => console.log(JSON.stringify(App.preAuthKeys.value, null, 4))}>
-					Log PreAuthKeys
-				</button>
-				<button type="button" class="btn btn-sm rounded-md variant-ghost-primary w-full" onclick={() => console.log(JSON.stringify(App.apiKeyInfo.value, null, 4))}>
-					Log ApiKey Info
-				</button>
-			</div>
-
-
-			<div class="flex justify-end">
-				<button
-					type="submit"
-					disabled={loading || !settings.apiKey}
-					class="inline-flex items-center px-4 py-2 btn btn-sm variant-filled-primary disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					<RawMdiContentSaveOutline class="w-5 h-5 mr-2" />
-					Save Settings
-				</button>
-			</div>
-		</div>
+		<Card.Root>
+			<Card.Header>
+				<Card.Title>Developer</Card.Title>
+				<Card.Description>Debug output goes to the browser console.</Card.Description>
+			</Card.Header>
+			<Card.Content class="grid gap-4">
+				<Label class="font-normal"><Switch bind:checked={settings.debug} disabled={loading} />Console debugging</Label>
+				<div class="flex flex-wrap gap-2">
+					{#each [['Users', App.users.value], ['Nodes', App.nodes.value], ['PreAuth keys', App.preAuthKeys.value], ['API key info', App.apiKeyInfo.value]] as [name, data]}
+						<Button type="button" variant="outline" size="sm" onclick={() => console.log(JSON.stringify(data, null, 4))}>Log {name}</Button>
+					{/each}
+				</div>
+			</Card.Content>
+		</Card.Root>
 	</form>
 </Page>

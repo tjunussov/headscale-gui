@@ -1,72 +1,32 @@
 <script lang="ts">
 	import CardListEntry from '../CardListEntry.svelte';
 	import type { Node } from '$lib/common/types';
-	import { debug } from '$lib/common/debug'
+	import { debug } from '$lib/common/debug';
 	import NodeRoute from './NodeRoute.svelte';
-	import ToggleOff from '~icons/mdi/toggle-switch-variant-off';
-	import ToggleOn from '~icons/mdi/toggle-switch-variant';
 	import { disableRoutes, enableRoutes } from '$lib/common/api';
-	import { App } from '$lib/States.svelte';
-	import type { Snippet } from 'svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
 
-	type NodeRoutesProps = {
-		node: Node,
-		showTitle?: boolean,
-		childBottom?: Snippet,
-	}
-
-	let {
-		node = $bindable(),
-		showTitle = true,
-		childBottom = undefined,
-	}: NodeRoutesProps = $props()
-
+	let { node = $bindable(), showTitle = true }: { node: Node; showTitle?: boolean } = $props();
 	let loading = $state(false);
 
+	async function all(enable: boolean) {
+		loading = true;
+		try { await (enable ? enableRoutes : disableRoutes)(node, ...node.availableRoutes); } catch (e) { debug(e); } finally { loading = false; }
+	}
 </script>
 
-<CardListEntry title={showTitle ? "Routes:" : undefined} valueClasses="justify-right text-right" top>
-	<div class="mb-2 flex flex-row">
-		<button
-			class="btn btn-sm items-end gap-1 px-0 ml-4 text-success-700 dark:text-success-400"
-			disabled={loading}
-			onclick={async () => {
-				loading = true
-				try {
-					await enableRoutes(node, ...node.availableRoutes);
-				} catch (error) {
-					debug(error);
-				} finally {
-					loading = false;
-				}
-			}}
-		>
-			<ToggleOn />
-		</button>
-		<button
-			class="btn btn-sm items-end gap-1 px-0 ml-4 text-error-600 dark:text-error-400"
-			disabled={loading}
-			onclick={async () => {
-				loading = true
-				try {
-					await disableRoutes(node, ...node.availableRoutes);
-				} catch (error) {
-					debug(error);
-				} finally {
-					loading = false;
-				}
-			}}
-		>
-			<ToggleOff />
-		</button>
-	</div>
-	{#if childBottom === undefined}
-		{#each node.availableRoutes as route}
-			<div class="grid grid-cols-12 col-span-12 font-thin">
-				<NodeRoute {route} disable={loading} {node} />
-			</div>
-		{/each}
+<CardListEntry title={showTitle ? 'Routes' : undefined} top>
+	{#if node.availableRoutes.length}
+		<div class="flex justify-end gap-2">
+			<Button size="xs" variant="outline" disabled={loading} onclick={() => all(true)}>Approve all</Button>
+			<Button size="xs" variant="ghost" disabled={loading} onclick={() => all(false)}>Revoke all</Button>
+		</div>
 	{:else}
-		{@render childBottom()}
+		<span class="text-muted-foreground">None advertised</span>
 	{/if}
+	{#snippet childBottom()}
+		<div class="pt-2">
+			{#each node.availableRoutes as route (route)}<NodeRoute {route} disable={loading} {node} />{/each}
+		</div>
+	{/snippet}
 </CardListEntry>

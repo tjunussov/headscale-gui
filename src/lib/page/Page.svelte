@@ -1,18 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { fade } from 'svelte/transition';
-
-	type PageProps = {
-		classes?: string,
-		children: Snippet,
-	}
-	let { classes = '', children }: PageProps = $props()
-
-	const time = 150;
-	const optsIn = { delay: time, duration: time };
-	const optsOut = { duration: time };
+	let { classes = '', children }: { classes?: string; children: Snippet } = $props();
 </script>
 
-<div in:fade={optsIn} out:fade={optsOut} class={classes}>
-	{@render children()}
-</div>
+<div class="flex flex-col gap-4 md:gap-6 {classes}">{@render children()}</div>

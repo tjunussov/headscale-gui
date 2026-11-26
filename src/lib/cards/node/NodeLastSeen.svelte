@@ -1,30 +1,12 @@
 <script lang="ts">
-	import { getTime, getTimeDifferenceMessage } from '$lib/common/funcs';
+	import { lastSeenText } from '$lib/common/funcs';
 	import type { Node } from '$lib/common/types';
 	import { onMount } from 'svelte';
 	import CardListEntry from '../CardListEntry.svelte';
 
-	type NodeLastSeenProps = {
-		node: Node,
-	}
-	let { node }: NodeLastSeenProps = $props()
-
-	let lastSeen = $state(getTimeDifferenceMessage(getTime(node.lastSeen)));
-
-	onMount(() => {
-		const interval = setInterval(() => {
-			lastSeen = getTimeDifferenceMessage(getTime(node.lastSeen));
-		}, 1000);
-		return () => {
-			clearInterval(interval);
-		};
-	});
+	let { node }: { node: Node } = $props();
+	let tick = $state(0);
+	onMount(() => { const i = setInterval(() => tick++, 1000); return () => clearInterval(i); });
 </script>
 
-<CardListEntry title="Last Seen:">
-	{#if node.online}
-		Online Now
-	{:else}
-		{lastSeen}
-	{/if}
-</CardListEntry>
+<CardListEntry title="Last seen">{#key tick}{lastSeenText(node)}{/key}</CardListEntry>

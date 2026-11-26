@@ -1,53 +1,27 @@
 <script lang="ts">
-	import { slide } from 'svelte/transition';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import Trash from '@lucide/svelte/icons/trash-2';
 
-	import RawMdiDelete from '~icons/mdi/delete';
-	import RawMdiCheckCircleOutline from '~icons/mdi/check-circle-outline';
-	import RawMdiCloseCircleOutline from '~icons/mdi/close-circle-outline';
-
-	type DeleteProps = {
-		func: () => void,
-		show?: boolean,
-		disabled?: boolean,
-	}
-
-	let { func, show = false, disabled = false }: DeleteProps = $props()
+	type DeleteProps = { func: () => void | Promise<void>; show?: boolean; disabled?: boolean; label?: string };
+	let { func, show = false, disabled = false, label = 'Delete' }: DeleteProps = $props();
+	let busy = $state(false);
 </script>
 
-<div class="flex flex-row items-center justify-end py-0 my-0 pl-0 ml-4">
+<div class="flex items-center justify-end gap-2">
 	{#if show}
-		<span transition:slide={{ delay: 50, axis: 'x' }} class="text-right flex space-x-2">
-			<button
-				{disabled}
-				onclick={async () => {
-					try {
-						disabled = true;
-						if (func.constructor.name === 'AsyncFunction') {
-							await func();
-						} else {
-							func();
-						}
-					} finally {
-						disabled = false;
-						show = false;
-					}
-				}}
-			>
-				<RawMdiCheckCircleOutline />
-			</button>
-			<button
-				{disabled}
-				onclick={() => {
-					show = false;
-				}}
-			>
-				<RawMdiCloseCircleOutline />
-			</button>
-		</span>
+		<Button size="sm" variant="ghost" disabled={busy} onclick={() => (show = false)}>Cancel</Button>
+		<Button
+			size="sm"
+			variant="destructive"
+			disabled={busy || disabled}
+			onclick={async () => {
+				busy = true;
+				try { await func(); } finally { busy = false; show = false; }
+			}}>Confirm</Button
+		>
+	{:else}
+		<Button size="sm" variant="outline" class="text-destructive" {disabled} onclick={() => (show = true)}>
+			<Trash />{label}
+		</Button>
 	{/if}
-	<span class="text-error-600 dark:text-error-400 ml-2">
-		<button {disabled} onclick={() => (show = !show)}>
-			<RawMdiDelete />
-		</button>
-	</span>
 </div>

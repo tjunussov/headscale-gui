@@ -1,133 +1,34 @@
 <script lang="ts">
-	import CardListPage from "$lib/cards/CardListPage.svelte";
-	import { ACLBuilder, saveConfig, type ACL } from "$lib/common/acl.svelte";
-    import { isTextContent, JSONEditor, Mode, type TextContent } from 'svelte-jsoneditor'
-    import 'svelte-jsoneditor/themes/jse-theme-dark.css'
-	import { getPolicy } from "$lib/common/api";
-	import { debug } from "$lib/common/debug";
-	import { toastError, toastSuccess } from "$lib/common/funcs";
-	import { CodeBlock, /*getModalStore,*/ getToastStore, modeCurrent, type ModalSettings } from "@skeletonlabs/skeleton";
-    
-	// import LoaderModal from "$lib/parts/LoaderModal.svelte";
-    import JWCC from 'json5'
-	import { onMount } from "svelte";
-	import { get } from "svelte/store";
+	import { ACLBuilder } from '$lib/common/acl.svelte';
+	import { isTextContent, JSONEditor, Mode, type TextContent } from 'svelte-jsoneditor';
+	import 'svelte-jsoneditor/themes/jse-theme-dark.css';
+	import JWCC from 'json5';
+	import { mode } from 'mode-watcher';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { copyToClipboard } from '$lib/common/funcs';
+	import Copy from '@lucide/svelte/icons/copy';
 
-    const ToastStore = getToastStore()
-    let isLightMode = $state(get(modeCurrent))
-    //const ModalStore = getModalStore()
-
-    /*
-    const modal: ModalSettings = {
-        type: "component",
-        component: {
-            ref: LoaderModal,
-            props: {
-                title: "Load ACL Config",
-                body: "Import an existing HuJSON configuration.",
-                callback: callback,
-            }
-        },
-    };
-    */
-
-	let {acl = $bindable(), loading = $bindable(false)}: {acl: ACLBuilder, loading?: boolean} = $props();
-	const aclJSON = $derived(acl.JSON(2))
-    let editing = $state(false)
-    let aclEditJSON = $state<TextContent>({text:""})
-
-    /*
-    function callback(data: string): boolean {
-        const policy = JWCC.parse<ACL>(data);
-        acl = ACLBuilder.fromPolicy(policy)
-        return true
-    }
-    */
-
-    function applyConfig(config: TextContent) {
-        acl = ACLBuilder.fromPolicy(config.text)
-        editing = false
-    }
-
-    function resetConfig() {
-        acl = ACLBuilder.defaultACL()
-    }
-
-    function loadConfig() {
-        loading = true
-		getPolicy().then(policy => {
-			acl = ACLBuilder.fromPolicy(JWCC.parse<ACL>(policy))
-            toastSuccess("Loaded ACL policy from server", ToastStore)
-		}).catch(reason => {
-			debug("failed to get policy:", reason)
-			toastError(`Unable to get ACL policy from server.`, ToastStore, reason)
-		}).finally(() => {
-            loading = false
-        })
-        // ModalStore.trigger(modal)
-    }
-
-    onMount(()=>{
-        const unsubModeCurrent = modeCurrent.subscribe(m => {
-            isLightMode = m
-        })
-        return ()=>{
-            unsubModeCurrent()
-        }
-    })
-
+	let { acl = $bindable(), loading = $bindable(false) }: { acl: ACLBuilder; loading?: boolean } = $props();
+	let editing = $state(false);
+	let draft = $state<TextContent>({ text: '' });
 </script>
 
-<CardListPage>
-	<div class="mb-2">
-		<button disabled={loading || editing} class="btn-sm rounded-md variant-filled-success disabled:opacity-50 w-32" onclick={() => { 
-            saveConfig(acl, ToastStore, {setLoadingTrue: () => { loading = true}, setLoadingFalse: ()=> { loading = false }})
-        }}>
-			Save Config
-		</button>
-		<button disabled={loading || editing} class="btn-sm rounded-md variant-filled-secondary disabled:opacity-50 w-32" onclick={() => { loadConfig() }}>
-			Load Config
-		</button>
-		<button 
-            disabled={loading}
-            class="btn-sm rounded-md variant-filled-warning w-32 disabled:opacity-50"
-            onclick={() => {
-                if(editing){
-                    applyConfig(aclEditJSON)
-                } else {
-                    aclEditJSON.text = acl.JSON(2); 
-                    editing = true; 
-                }
-            }}
-        >
-            {#if editing}
-                Apply Config
-            {:else}
-                Edit Config
-            {/if}
-		</button>
-        {#if editing}
-            <button disabled={loading} class="btn-sm rounded-md variant-filled-error disabled:opacity-50 w-32" onclick={() => { editing = false }}>
-                Cancel Editing
-            </button>
-        {:else}
-            <button disabled={loading || editing} class="btn-sm rounded-md variant-filled-error disabled:opacity-50 w-32" onclick={() => { resetConfig() }}>
-                Reset Config
-            </button>
-        {/if}
-		<!--button disabled={loading} class="btn-sm rounded-md variant-filled-success" onclick={() => { if(aclEditJSON !== undefined) applyConfig(aclEditJSON) }}>
-			Apply Config
-		</button-->
+<div class="flex flex-col gap-3">
+	<div class="flex flex-wrap gap-2">
+		{#if editing}
+			<Button size="sm" disabled={loading} onclick={() => { acl = ACLBuilder.fromPolicy(draft.text); editing = false; }}>Apply</Button>
+			<Button size="sm" variant="ghost" onclick={() => (editing = false)}>Cancel</Button>
+		{:else}
+			<Button size="sm" variant="outline" disabled={loading} onclick={() => { draft = { text: acl.JSON(2) }; editing = true; }}>Edit JSON</Button>
+			<Button size="sm" variant="outline" onclick={() => copyToClipboard(acl.JSON(2), 'Copied policy JSON')}><Copy />Copy</Button>
+			<Button size="sm" variant="ghost" class="text-destructive" disabled={loading} onclick={() => (acl = ACLBuilder.defaultACL())}>Reset to default</Button>
+		{/if}
 	</div>
-    {#if !editing}
-    <CodeBlock language="json" code={aclJSON} />
-    {:else}
-    <div class={isLightMode ? "" : "jse-theme-dark" }>
-    <JSONEditor parser={JWCC} mode={Mode.text} tabSize={4} bind:content={aclEditJSON} onChange={(updatedContent) => {
-        if(isTextContent(updatedContent)){
-            aclEditJSON = updatedContent
-        }
-    }} />
-    </div>
-    {/if}
-</CardListPage>
+	{#if editing}
+		<div class="overflow-hidden rounded-lg border {mode.current === 'dark' ? 'jse-theme-dark' : ''}">
+			<JSONEditor parser={JWCC} mode={Mode.text} tabSize={4} bind:content={draft} onChange={(c) => { if (isTextContent(c)) draft = c; }} />
+		</div>
+	{:else}
+		<pre class="max-h-[70vh] overflow-auto rounded-lg border bg-muted/40 p-4 font-mono text-xs leading-relaxed">{acl.JSON(2)}</pre>
+	{/if}
+</div>

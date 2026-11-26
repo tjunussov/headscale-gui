@@ -1,7 +1,7 @@
 import JWCC from 'json5'
 import { isValidCIDR, isValidIP, toastError, toastSuccess } from "$lib/common/funcs"
 import { setPolicy } from './api'
-import type { ToastStore } from '@skeletonlabs/skeleton'
+
 import { debug } from './debug'
 
 export type TagOwners = string[]
@@ -742,21 +742,17 @@ export class ACLBuilder implements ACL {
     }
 }
 
-export async function saveConfig(acl: ACLBuilder, ToastStore: ToastStore, loading?: {setLoadingTrue: ()=>void, setLoadingFalse: ()=>void}) {
+export async function saveConfig(acl: ACLBuilder, loading?: {setLoadingTrue: ()=>void, setLoadingFalse: ()=>void}) {
     if(loading !== undefined){
         loading.setLoadingTrue()
     }
     //loading = true
     try {
         await setPolicy(acl)
-        if(ToastStore !== undefined){
-            toastSuccess('Saved ACL Configuration', ToastStore)
-        }
+        toastSuccess('Saved ACL Configuration')
     } catch(err) {
         if (err instanceof Error){
-            if(ToastStore !== undefined){
-                toastError('', ToastStore, err)
-            }
+            toastError('', err)
         }
         debug(err)
     } finally {

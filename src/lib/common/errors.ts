@@ -1,7 +1,7 @@
 // TODO: add support for more specific errors so error handling can be far more graceful
 
 import { informUserUnauthorized } from '$lib/States.svelte';
-import type { ToastStore } from '@skeletonlabs/skeleton';
+
 import { debug } from './debug';
 
 export class ApiAuthError extends Error {
@@ -15,10 +15,10 @@ export class ApiAuthErrorUnauthorized extends ApiAuthError {
 	}
 }
 
-export function createPopulateErrorHandler(ToastStore: ToastStore) {
+export function createPopulateErrorHandler() {
 	return (err: unknown) => {
 		if (err instanceof ApiAuthErrorUnauthorized) {
-			informUserUnauthorized(ToastStore);
+			informUserUnauthorized();
 		}
 		debug('Error Handler:', err);
 	};

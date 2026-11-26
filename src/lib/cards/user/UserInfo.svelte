@@ -14,29 +14,29 @@
 	type UserInfoProps = {
 		user: User,
 	}
-	let { user = $bindable() }: UserInfoProps = $props()
+	let { user }: UserInfoProps = $props()
 </script>
 
 <CardListContainer>
-	<ItemListName bind:item={user} allowed={user.provider.toLocaleLowerCase() !== "oidc"} />
+	<ItemListName item={user} allowed={user.provider.toLocaleLowerCase() !== "oidc"} />
 	<CardSeparator />
 	{#if user.displayName}
-	<UserDisplayName bind:user />
+	<UserDisplayName {user} />
 	<CardSeparator />
 	{/if}
 	{#if user.email}
-	<UserEmail bind:user />
+	<UserEmail {user} />
 	<CardSeparator />
 	{/if}
-	<UserProvider bind:user />
+	<UserProvider {user} />
 	<CardSeparator />
-	<ItemCreatedAt bind:item={user} />
+	<ItemCreatedAt item={user} />
 	<CardSeparator />
-	<UserListNodes bind:user />
+	<UserListNodes {user} />
 	<CardSeparator />
 	{#if user.name || user.email}
-	<UserListPreAuthKeys bind:user />
+	<UserListPreAuthKeys {user} />
 	<CardSeparator />
 	{/if}
-	<ItemDelete bind:item={user} />
+	<ItemDelete item={user} />
 </CardListContainer>

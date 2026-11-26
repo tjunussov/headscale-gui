@@ -19,9 +19,7 @@ COPY .eslintrc.cjs ./
 COPY .npmrc ./
 COPY .prettierignore ./
 COPY .prettierrc ./
-COPY postcss.config.cjs ./
 COPY svelte.config.js ./
-COPY tailwind.config.ts ./
 COPY tsconfig.json ./
 COPY vite.config.ts ./
 

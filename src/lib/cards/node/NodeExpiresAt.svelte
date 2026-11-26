@@ -33,7 +33,7 @@
 			{diff.message}
 		</span>
 		<span class="items-center">
-			<Delete
+			<Delete label="Expire"
 				func={async () => {
 					loading = true
 					try{

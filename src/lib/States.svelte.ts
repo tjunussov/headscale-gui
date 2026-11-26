@@ -3,16 +3,12 @@ import { Mutex } from 'async-mutex';
 import { browser } from '$app/environment';
 import type { User, Node, PreAuthKey, ApiKeyInfo, ApiApiKeys, Deployment } from '$lib/common/types';
 import { getUsers, getPreAuthKeys, getNodes } from '$lib/common/api/get';
-import type { ToastStore } from '@skeletonlabs/skeleton';
+
 import { apiGet } from './common/api';
 import { arraysEqual, clone, toastError, toastWarning } from './common/funcs';
 import { debug } from './common/debug';
 
-export type LayoutStyle = 'tile' | 'list';
-
-function toggledLayout(style: LayoutStyle): LayoutStyle {
-    return style === 'list' ? 'tile' : 'list';
-}
+export type LayoutStyle = 'list' | 'tile';
 
 export type Valued<T> = {
     value: T
@@ -126,18 +122,10 @@ export class HeadscaleAdmin {
     hasApi = $derived(this.hasApiKey && this.hasApiUrl)
     hasValidApi = $derived(this.hasApi && this.apiKeyInfo.value.authorized === true)
 
-    // layouts
+    // list/tile view per page (same localStorage keys as upstream)
     layoutUser = new StateLocal<LayoutStyle>('layoutUser', 'list');
     layoutNode = new StateLocal<LayoutStyle>('layoutNode', 'list');
     layoutRoute = new StateLocal<LayoutStyle>('layoutRoute', 'list');
-
-    toggleLayoutUser() {
-        this.layoutUser.value = toggledLayout(this.layoutUser.value)
-    }
-
-    toggleLayoutNode() {
-        this.layoutNode.value = toggledLayout(this.layoutNode.value)
-    }
 
     // deployments
     deploymentDefaults = new StateLocal<Deployment>('deploymentDefaults', {
@@ -243,11 +231,6 @@ export class HeadscaleAdmin {
         }
     }
 
-    toggleLayout(layout?: Valued<LayoutStyle>) {
-        if (layout) {
-            layout.value = (layout.value === 'tile' ? 'list' : 'tile');
-        }
-    }
 
     saveDeploymentDefaults(deployment: Deployment) {
         const d = clone(deployment)
@@ -279,7 +262,7 @@ export function updateItem(items: Identified[], item: Identified): Identified[] 
 
 const mu = new Mutex();
 
-export function informUserUnauthorized(toastStore: ToastStore) {
+export function informUserUnauthorized() {
 	mu.runExclusive(() => {
 		App.apiKeyInfo;
 		if (App.apiKeyInfo.value.informedUnauthorized === true) {
@@ -287,17 +270,17 @@ export function informUserUnauthorized(toastStore: ToastStore) {
 		}
 		App.apiKeyInfo.value.informedUnauthorized = true;
 		App.apiKeyInfo.value.authorized = false;
-		toastError('API Key is Unauthorized or Invalid', toastStore);
+		toastError('API Key is Unauthorized or Invalid');
 	});
 }
 
-export function informUserExpiringSoon(toastStore: ToastStore) {
+export function informUserExpiringSoon() {
 	mu.runExclusive(() => {
 		if (App.apiKeyInfo.value.informedExpiringSoon === true) {
 			return;
 		}
 		App.apiKeyInfo.value.informedUnauthorized = true;
 		App.apiKeyInfo.value.authorized = false;
-		toastWarning('API Key Expires Soon', toastStore);
+		toastWarning('API Key Expires Soon');
 	});
 }
